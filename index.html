@@ -3,354 +3,64 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Warcraft TS Comms - Ultra Stable</title>
-  
+  <title>Warcraft TS Comms - Realtime</title>
+
   <style>
     :root {
       --bg-dark: #07090e;
       --panel-bg: rgba(16, 20, 28, 0.95);
       --border-gold: #c89b3c;
-      --border-gold-bright: #f0e6d2;
       --border-gold-dark: #6e5223;
       --text-gold: #f0ac00;
       --text-light: #cdbe91;
       --accent-green: #38a169;
     }
 
-    body.theme-horde {
-      --border-gold: #a32222;
-      --border-gold-dark: #540e0e;
-      --text-gold: #ff4d4d;
-      background: #0d0505;
-    }
-    body.theme-alliance {
-      --border-gold: #2b6cb0;
-      --border-gold-dark: #1a365d;
-      --text-gold: #63b3ed;
-      background: #050b14;
-    }
-    body.theme-lichking {
-      --border-gold: #319795;
-      --border-gold-dark: #1d4044;
-      --text-gold: #76e4f7;
-      background: #040e14;
-    }
-    body.theme-bc {
-      --border-gold: #38a169;
-      --border-gold-dark: #1c4532;
-      --text-gold: #68d391;
-      background: #041208;
-    }
+    body.theme-horde { --border-gold: #a32222; --border-gold-dark: #540e0e; --text-gold: #ff4d4d; background: #0d0505; }
+    body.theme-alliance { --border-gold: #2b6cb0; --border-gold-dark: #1a365d; --text-gold: #63b3ed; background: #050b14; }
+    body.theme-lichking { --border-gold: #319795; --border-gold-dark: #1d4044; --text-gold: #76e4f7; background: #040e14; }
+    body.theme-bc { --border-gold: #38a169; --border-gold-dark: #1c4532; --text-gold: #68d391; background: #041208; }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      user-select: none;
-      -webkit-user-select: none;
-    }
-
-    body {
-      background-color: var(--bg-dark);
-      color: var(--text-light);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 0;
-    }
-
-    .app-container {
-      width: 100%;
-      max-width: 900px;
-      height: 100vh;
-      max-height: 800px;
-      background: var(--panel-bg);
-      border: 2px solid var(--border-gold-dark);
-      display: flex;
-      flex-direction: column;
-      box-shadow: 0 0 25px rgba(0, 0, 0, 0.9);
-      position: relative;
-    }
-
-    @media (min-width: 768px) {
-      .app-container {
-        height: 90vh;
-        border-radius: 8px;
-        outline: 2px solid var(--border-gold);
-      }
-    }
-
-    .header {
-      padding: 10px 14px;
-      border-bottom: 2px solid var(--border-gold-dark);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: rgba(0, 0, 0, 0.4);
-    }
-
-    .header h1 {
-      color: var(--text-gold);
-      font-size: 1.1rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 1px 1px 2px #000;
-    }
-
-    .theme-selector select {
-      background: #0a0d12;
-      color: var(--text-light);
-      border: 1px solid var(--border-gold-dark);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-    }
-
-    .main-layout {
-      flex: 1;
-      display: flex;
-      overflow: hidden;
-      position: relative;
-    }
-
-    .mobile-nav {
-      display: flex;
-      background: rgba(8, 11, 16, 0.98);
-      border-top: 2px solid var(--border-gold-dark);
-    }
-
-    @media (min-width: 768px) {
-      .mobile-nav { display: none; }
-    }
-
-    .nav-btn {
-      flex: 1;
-      padding: 12px 0;
-      background: transparent;
-      border: none;
-      color: #718096;
-      font-weight: bold;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-
-    .nav-btn.active {
-      color: var(--text-gold);
-      border-top: 3px solid var(--border-gold);
-      background: rgba(200, 155, 60, 0.08);
-    }
-
-    .panel-section {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 12px;
-      overflow-y: auto;
-    }
-
-    @media (max-width: 767px) {
-      .panel-section.mobile-hidden { display: none !important; }
-    }
-
-    .channels-panel {
-      width: 100%;
-      border-right: 1px solid var(--border-gold-dark);
-    }
-
-    @media (min-width: 768px) {
-      .channels-panel { width: 320px; }
-    }
-
-    .content-panel {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .section-title {
-      font-size: 0.85rem;
-      color: var(--text-gold);
-      text-transform: uppercase;
-      font-weight: bold;
-      margin-bottom: 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .wow-input {
-      width: 100%;
-      padding: 8px 10px;
-      background: #080a0e;
-      border: 1px solid var(--border-gold-dark);
-      color: #fff;
-      border-radius: 3px;
-      font-size: 0.85rem;
-      outline: none;
-    }
-
-    .wow-btn {
-      padding: 8px 12px;
-      background: linear-gradient(180deg, #4a2d18 0%, #261308 100%);
-      border: 1px solid var(--border-gold);
-      color: var(--text-gold);
-      font-weight: bold;
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      border-radius: 4px;
-      cursor: pointer;
-      text-shadow: 1px 1px 2px #000;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; user-select: none; }
+    body { background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+    .app-container { width: 100%; max-width: 900px; height: 100vh; max-height: 800px; background: var(--panel-bg); border: 2px solid var(--border-gold-dark); display: flex; flex-direction: column; position: relative; }
+    .header { padding: 10px 14px; border-bottom: 2px solid var(--border-gold-dark); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.4); }
+    .header h1 { color: var(--text-gold); font-size: 1.1rem; text-transform: uppercase; }
+    .theme-selector select { background: #0a0d12; color: var(--text-light); border: 1px solid var(--border-gold-dark); padding: 4px; border-radius: 4px; }
+    .main-layout { flex: 1; display: flex; overflow: hidden; position: relative; }
+    .mobile-nav { display: flex; background: rgba(8, 11, 16, 0.98); border-top: 2px solid var(--border-gold-dark); }
+    @media (min-width: 768px) { .mobile-nav { display: none; } }
+    .nav-btn { flex: 1; padding: 12px 0; background: transparent; border: none; color: #718096; font-weight: bold; font-size: 0.8rem; text-transform: uppercase; }
+    .nav-btn.active { color: var(--text-gold); border-top: 3px solid var(--border-gold); background: rgba(200, 155, 60, 0.08); }
+    .panel-section { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow-y: auto; }
+    @media (max-width: 767px) { .panel-section.mobile-hidden { display: none !important; } }
+    .channels-panel { width: 100%; border-right: 1px solid var(--border-gold-dark); }
+    @media (min-width: 768px) { .channels-panel { width: 320px; } }
+    .content-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+    .section-title { font-size: 0.85rem; color: var(--text-gold); text-transform: uppercase; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+    .wow-input { width: 100%; padding: 8px 10px; background: #080a0e; border: 1px solid var(--border-gold-dark); color: #fff; border-radius: 3px; font-size: 0.85rem; outline: none; }
+    .wow-btn { padding: 8px 12px; background: linear-gradient(180deg, #4a2d18 0%, #261308 100%); border: 1px solid var(--border-gold); color: var(--text-gold); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
     .wow-btn.btn-full { width: 100%; }
-
-    .wow-btn.btn-danger {
-      background: linear-gradient(180deg, #611818 0%, #300a0a 100%);
-      border-color: #e53e3e;
-      color: #feb2b2;
-    }
-
-    .channel-tree {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-      overflow-y: auto;
-    }
-
-    .channel-card {
-      background: rgba(10, 14, 20, 0.8);
-      border: 1px solid var(--border-gold-dark);
-      border-radius: 4px;
-      padding: 10px;
-      cursor: pointer;
-    }
-
-    .channel-card.active {
-      border-color: var(--accent-green);
-      background: rgba(15, 35, 22, 0.8);
-    }
-
-    .channel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.9rem;
-      font-weight: bold;
-      color: #fff;
-    }
-
-    .channel-users {
-      margin-top: 6px;
-      padding-left: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      border-left: 2px solid var(--border-gold-dark);
-    }
-
-    .user-tag {
-      font-size: 0.8rem;
-      color: var(--text-light);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .user-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: #4a5568;
-    }
-
-    .user-dot.speaking {
-      background: #48bb78;
-      box-shadow: 0 0 6px #48bb78;
-    }
-
-    .chat-tabs {
-      display: flex;
-      gap: 4px;
-      margin-bottom: 6px;
-    }
-
-    .chat-tab-btn {
-      padding: 6px 12px;
-      background: rgba(0,0,0,0.4);
-      border: 1px solid var(--border-gold-dark);
-      color: #718096;
-      font-size: 0.75rem;
-      border-radius: 3px;
-      cursor: pointer;
-    }
-
-    .chat-tab-btn.active {
-      background: rgba(200, 155, 60, 0.15);
-      border-color: var(--border-gold);
-      color: var(--text-gold);
-    }
-
-    .chat-messages {
-      flex: 1;
-      background: rgba(5, 7, 10, 0.8);
-      border: 1px solid var(--border-gold-dark);
-      border-radius: 4px;
-      padding: 8px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      min-height: 140px;
-    }
-
-    .msg-item {
-      font-size: 0.8rem;
-      line-height: 1.3;
-    }
-
-    .msg-user {
-      color: var(--text-gold);
-      font-weight: bold;
-    }
-
+    .wow-btn.btn-danger { background: linear-gradient(180deg, #611818 0%, #300a0a 100%); border-color: #e53e3e; color: #feb2b2; }
+    .channel-tree { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
+    .channel-card { background: rgba(10, 14, 20, 0.8); border: 1px solid var(--border-gold-dark); border-radius: 4px; padding: 10px; cursor: pointer; }
+    .channel-card.active { border-color: var(--accent-green); background: rgba(15, 35, 22, 0.8); }
+    .channel-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: bold; color: #fff; }
+    .channel-users { margin-top: 6px; padding-left: 10px; display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--border-gold-dark); }
+    .user-tag { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
+    .user-dot { width: 8px; height: 8px; border-radius: 50%; background: #4a5568; }
+    .user-dot.speaking { background: #48bb78; box-shadow: 0 0 6px #48bb78; }
+    .chat-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
+    .chat-tab-btn { padding: 6px 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-gold-dark); color: #718096; font-size: 0.75rem; border-radius: 3px; cursor: pointer; }
+    .chat-tab-btn.active { background: rgba(200, 155, 60, 0.15); border-color: var(--border-gold); color: var(--text-gold); }
+    .chat-messages { flex: 1; background: rgba(5, 7, 10, 0.8); border: 1px solid var(--border-gold-dark); border-radius: 4px; padding: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; min-height: 140px; }
+    .msg-item { font-size: 0.8rem; line-height: 1.3; }
+    .msg-user { color: var(--text-gold); font-weight: bold; }
     .msg-text { color: #e2e8f0; }
-
-    .chat-input-bar {
-      display: flex;
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .voice-box {
-      background: rgba(0, 0, 0, 0.4);
-      border: 1px solid var(--border-gold-dark);
-      padding: 10px;
-      border-radius: 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .ptt-btn {
-      padding: 16px;
-      font-size: 1rem;
-      background: linear-gradient(180deg, #2b4c7e 0%, #132540 100%);
-      border: 2px solid #4299e1;
-      color: #ebf8ff;
-      border-radius: 6px;
-      touch-action: manipulation;
-    }
-
-    .ptt-btn.active {
-      background: linear-gradient(180deg, #276749 0%, #123824 100%);
-      border-color: #48bb78;
-    }
-
+    .chat-input-bar { display: flex; gap: 6px; margin-top: 6px; }
+    .voice-box { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold-dark); padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; }
+    .ptt-btn { padding: 16px; font-size: 1rem; background: linear-gradient(180deg, #2b4c7e 0%, #132540 100%); border: 2px solid #4299e1; color: #ebf8ff; border-radius: 6px; touch-action: manipulation; }
+    .ptt-btn.active { background: linear-gradient(180deg, #276749 0%, #123824 100%); border-color: #48bb78; }
     .hidden { display: none !important; }
   </style>
 </head>
@@ -378,43 +88,27 @@
           <label style="font-size:0.75rem; color:#a0aec0;">Tu Nick:</label>
           <input type="text" id="nickInput" class="wow-input" placeholder="Ej: Thrall, Arthas..." maxlength="15">
         </div>
-        <button id="connectBtn" class="wow-btn btn-full" onclick="enterServer()">Conectar</button>
-        <div id="statusMessage" style="font-size:0.7rem; color:#a0aec0; margin-top:8px; text-align:center;">Cargando red...</div>
+        <button id="connectBtn" class="wow-btn btn-full" onclick="enterServer()">Cargando Servidor...</button>
       </div>
     </div>
 
     <!-- LAYOUT PRINCIPAL -->
     <div id="mainContent" class="main-layout hidden">
-      
       <div id="secChannels" class="panel-section channels-panel">
         <div class="section-title">
           <span>Canales</span>
-          <button class="wow-btn" style="font-size:0.7rem; padding: 4px 8px;" onclick="showCreateModal()">+ Crear</button>
         </div>
-
         <div id="channelTree" class="channel-tree"></div>
-
-        <div id="createModal" class="hidden" style="margin-top:10px; padding:10px; background:rgba(0,0,0,0.8); border:1px solid var(--border-gold);">
-          <input type="text" id="newRoomName" class="wow-input" placeholder="Nombre Canal" style="margin-bottom:6px;">
-          <input type="password" id="newRoomPass" class="wow-input" placeholder="Clave (Opcional)" style="margin-bottom:6px;">
-          <div style="display:flex; gap:4px;">
-            <button class="wow-btn btn-full" onclick="createRoom()">Crear</button>
-            <button class="wow-btn btn-full btn-danger" onclick="hideCreateModal()">X</button>
-          </div>
-        </div>
       </div>
 
       <div id="secChat" class="panel-section content-panel mobile-hidden">
-        
         <div class="voice-box">
           <div style="display:flex; justify-content:space-between; align-items:center;">
             <span style="font-size:0.8rem;">Canal: <b id="currentRoomLabel" style="color:#fff;">Ninguno</b></span>
             <span id="micStatusTag" style="font-size:0.7rem; padding:2px 6px; background:#4a5568; border-radius:10px;">SILENCIADO</span>
           </div>
 
-          <button id="touchPttBtn" class="wow-btn ptt-btn">
-            MANTENER PARA HABLAR
-          </button>
+          <button id="touchPttBtn" class="wow-btn ptt-btn">MANTENER PARA HABLAR</button>
 
           <div style="display:flex; gap:6px;">
             <button id="toggleMicBtn" class="wow-btn btn-full" onclick="toggleMic()">Mic: OFF</button>
@@ -435,9 +129,7 @@
             <button class="wow-btn" onclick="sendMsg()">Enviar</button>
           </div>
         </div>
-
       </div>
-
     </div>
 
     <div id="mobileNav" class="mobile-nav hidden">
@@ -446,66 +138,72 @@
     </div>
   </div>
 
+  <!-- Carga segura de Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <script>
+    let db = null;
     let myNick = "";
+    let myId = "user_" + Math.random().toString(36).substr(2, 6);
     let currentRoom = null;
     let currentChatTab = "general";
-    let peer = null;
     let localStream = null;
-    let isTalking = false;
-    let isContinuousMic = false;
-    let peerReady = false;
 
-    let generalMessages = [];
-    let roomMessages = {};
-
-    let rooms = [
-      { id: "lobby", name: "Lobby Principal", pass: "", users: [] },
-      { id: "raid25", name: "Raid ICC 25", pass: "", users: [] },
-      { id: "pvp", name: "Arenas / PVP", pass: "", users: [] }
-    ];
-
-    const peerConfig = {
-      config: {
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ]
-      }
+    let rooms = {
+      lobby: { name: "Lobby Principal", users: {} },
+      raid25: { name: "Raid ICC 25", users: {} },
+      pvp: { name: "Arenas / PVP", users: {} }
     };
 
-    // Carga asíncrona segura sin document.write
-    function loadScript(url, callback) {
-      const script = document.createElement('script');
-      script.type = 'text/javascript';
-      script.src = url;
-      script.async = true;
-      script.onload = callback;
-      script.onerror = () => {
-        // Fallback si falla el primer CDN
-        if (url.includes('cdnjs')) {
-          loadScript('https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js', callback);
-        } else {
-          document.getElementById('statusMessage').innerText = "Error cargando red. Revisa tu conexión.";
+    // Carga robusta de Firebase
+    function initFirebase() {
+      if (typeof firebase !== 'undefined') {
+        const firebaseConfig = {
+          databaseURL: "https://wowts-default-rtdb.firebaseio.com"
+        };
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
         }
-      };
-      document.head.appendChild(script);
+        db = firebase.database();
+        document.getElementById('connectBtn').innerText = "Conectar";
+        setupListeners();
+      } else {
+        setTimeout(initFirebase, 300); // Reintentar hasta que descargue la librería
+      }
     }
 
     window.onload = () => {
+      setupTouchEvents();
       if (localStorage.getItem('wow_ts_nick')) {
         document.getElementById('nickInput').value = localStorage.getItem('wow_ts_nick');
       }
-      setupTouchEvents();
-
-      // Cargar PeerJS dinámicamente
-      loadScript('https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.2/peerjs.min.js', () => {
-        peerReady = true;
-        document.getElementById('statusMessage').innerText = "Red lista para conectar";
-      });
+      initFirebase();
     };
 
+    function setupListeners() {
+      if (!db) return;
+
+      db.ref('presence').on('value', (snapshot) => {
+        const activeUsers = snapshot.val() || {};
+        Object.keys(rooms).forEach(r => rooms[r].users = {});
+
+        Object.keys(activeUsers).forEach(uid => {
+          const u = activeUsers[uid];
+          if (u.room && rooms[u.room]) {
+            rooms[u.room].users[uid] = u;
+          }
+        });
+        renderChannels();
+      });
+
+      db.ref('chats/general').limitToLast(30).on('value', (snapshot) => {
+        if (currentChatTab === 'general') renderChatFromSnap(snapshot.val());
+      });
+    }
+
     function enterServer() {
+      if (!db) return alert("Cargando servicios, intenta de nuevo en un segundo...");
       const nick = document.getElementById('nickInput').value.trim();
       if (!nick) return alert("Escribe un nick válido.");
 
@@ -516,30 +214,41 @@
       document.getElementById('mainContent').classList.remove('hidden');
       document.getElementById('mobileNav').classList.remove('hidden');
 
-      renderChannels();
-      renderChat();
+      db.ref('presence/' + myId).set({
+        nick: myNick,
+        room: 'lobby',
+        talking: false
+      });
+
+      db.ref('presence/' + myId).onDisconnect().remove();
+      joinChannel('lobby');
     }
 
     function renderChannels() {
       const tree = document.getElementById('channelTree');
       tree.innerHTML = "";
 
-      rooms.forEach(room => {
-        const isCurrent = currentRoom === room.id;
+      Object.keys(rooms).forEach(rId => {
+        const room = rooms[rId];
+        const isCurrent = currentRoom === rId;
         const card = document.createElement('div');
         card.className = `channel-card ${isCurrent ? 'active' : ''}`;
         
-        let usersHtml = room.users.map(u => `
-          <div class="user-tag">
-            <div class="user-dot ${u.talking ? 'speaking' : ''}"></div>
-            <span>${u.nick}</span>
-          </div>
-        `).join('');
+        const userKeys = Object.keys(room.users);
+        let usersHtml = userKeys.map(k => {
+          const u = room.users[k];
+          return `
+            <div class="user-tag">
+              <div class="user-dot ${u.talking ? 'speaking' : ''}"></div>
+              <span>${u.nick}</span>
+            </div>
+          `;
+        }).join('');
 
         card.innerHTML = `
-          <div class="channel-header" onclick="joinChannel('${room.id}')">
-            <span>🔊 ${room.name} ${room.pass ? '🔒' : ''}</span>
-            <span style="font-size:0.75rem; color:#718096;">(${room.users.length})</span>
+          <div class="channel-header" onclick="joinChannel('${rId}')">
+            <span>🔊 ${room.name}</span>
+            <span style="font-size:0.75rem; color:#718096;">(${userKeys.length})</span>
           </div>
           <div class="channel-users">
             ${usersHtml || '<span style="font-size:0.7rem; color:#4a5568;">Vacío</span>'}
@@ -550,61 +259,113 @@
     }
 
     async function joinChannel(roomId) {
-      const target = rooms.find(r => r.id === roomId);
-      if (!target) return;
+      if (!db) return;
+      currentRoom = roomId;
+      document.getElementById('currentRoomLabel').innerText = rooms[roomId].name;
 
-      if (target.pass) {
-        const pass = prompt("Clave del canal:");
-        if (pass !== target.pass) return alert("Clave incorrecta.");
-      }
+      db.ref('presence/' + myId + '/room').set(roomId);
 
-      if (currentRoom) leaveChannel();
+      db.ref('chats/' + roomId).limitToLast(30).on('value', (snapshot) => {
+        if (currentChatTab === 'room') renderChatFromSnap(snapshot.val());
+      });
 
       try {
         if (!localStream) {
           localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
           localStream.getAudioTracks()[0].enabled = false;
         }
+      } catch(e) {}
 
-        currentRoom = roomId;
-        target.users.push({ nick: myNick, talking: false });
-
-        if (peerReady && typeof Peer !== 'undefined') {
-          const cleanRoom = roomId.toLowerCase();
-          const peerId = `wowts-${cleanRoom}-${myNick.toLowerCase()}-${Math.floor(Math.random()*10000)}`;
-          
-          if (peer) peer.destroy();
-          peer = new Peer(peerId, peerConfig);
-
-          peer.on('call', (call) => {
-            call.answer(localStream);
-            call.on('stream', (remoteStream) => {
-              const audio = new Audio();
-              audio.srcObject = remoteStream;
-              audio.play();
-            });
-          });
-        }
-
-        document.getElementById('currentRoomLabel').innerText = target.name;
-        renderChannels();
-
-        if (window.innerWidth < 768) showMobileTab('chat');
-
-      } catch (err) {
-        alert("Permite el acceso al micrófono para hablar.");
-      }
+      if (window.innerWidth < 768) showMobileTab('chat');
     }
 
     function leaveChannel() {
-      if (currentRoom) {
-        const room = rooms.find(r => r.id === currentRoom);
-        if (room) room.users = room.users.filter(u => u.nick !== myNick);
+      if (!db) return;
+      db.ref('presence/' + myId + '/room').set('lobby');
+      currentRoom = 'lobby';
+      document.getElementById('currentRoomLabel').innerText = rooms['lobby'].name;
+    }
+
+    function sendMsg() {
+      if (!db) return;
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      const path = currentChatTab === 'general' ? 'chats/general' : 'chats/' + currentRoom;
+      
+      db.ref(path).push({
+        user: myNick,
+        text: text,
+        time: Date.now()
+      });
+
+      input.value = "";
+    }
+
+    function renderChatFromSnap(data) {
+      const box = document.getElementById('chatBox');
+      box.innerHTML = "";
+
+      if (data) {
+        Object.keys(data).forEach(k => {
+          const m = data[k];
+          const div = document.createElement('div');
+          div.className = 'msg-item';
+          div.innerHTML = `<span class="msg-user">${m.user}:</span> <span class="msg-text">${m.text}</span>`;
+          box.appendChild(div);
+        });
       }
-      if (peer) peer.destroy();
-      currentRoom = null;
-      document.getElementById('currentRoomLabel').innerText = "Ninguno";
-      renderChannels();
+      box.scrollTop = box.scrollHeight;
+    }
+
+    function switchChatTab(tab) {
+      if (!db) return;
+      currentChatTab = tab;
+      document.getElementById('tabGenBtn').classList.toggle('active', tab === 'general');
+      document.getElementById('tabRoomBtn').classList.toggle('active', tab === 'room');
+
+      const path = tab === 'general' ? 'chats/general' : 'chats/' + currentRoom;
+      db.ref(path).limitToLast(30).once('value', (snapshot) => {
+        renderChatFromSnap(snapshot.val());
+      });
+    }
+
+    function setupTouchEvents() {
+      const btn = document.getElementById('touchPttBtn');
+      btn.addEventListener('touchstart', (e) => { e.preventDefault(); startTalking(); });
+      btn.addEventListener('touchend', (e) => { e.preventDefault(); stopTalking(); });
+      btn.addEventListener('mousedown', startTalking);
+      btn.addEventListener('mouseup', stopTalking);
+    }
+
+    function startTalking() {
+      if (localStream) localStream.getAudioTracks()[0].enabled = true;
+      document.getElementById('micStatusTag').innerText = "HABLANDO";
+      document.getElementById('micStatusTag').style.background = "#38a169";
+      document.getElementById('touchPttBtn').classList.add('active');
+      if (db) db.ref('presence/' + myId + '/talking').set(true);
+    }
+
+    function stopTalking() {
+      if (localStream) localStream.getAudioTracks()[0].enabled = false;
+      document.getElementById('micStatusTag').innerText = "SILENCIADO";
+      document.getElementById('micStatusTag').style.background = "#4a5568";
+      document.getElementById('touchPttBtn').classList.remove('active');
+      if (db) db.ref('presence/' + myId + '/talking').set(false);
+    }
+
+    function toggleMic() {
+      const btn = document.getElementById('toggleMicBtn');
+      if (btn.innerText.includes("OFF")) {
+        btn.innerText = "Mic: ON";
+        btn.style.borderColor = "#48bb78";
+        startTalking();
+      } else {
+        btn.innerText = "Mic: OFF";
+        btn.style.borderColor = "var(--border-gold)";
+        stopTalking();
+      }
     }
 
     function showMobileTab(tab) {
@@ -624,115 +385,6 @@
         chatBtn.classList.add('active');
         chanBtn.classList.remove('active');
       }
-    }
-
-    function switchChatTab(tab) {
-      currentChatTab = tab;
-      document.getElementById('tabGenBtn').classList.toggle('active', tab === 'general');
-      document.getElementById('tabRoomBtn').classList.toggle('active', tab === 'room');
-      renderChat();
-    }
-
-    function sendMsg() {
-      const input = document.getElementById('msgInput');
-      const text = input.value.trim();
-      if (!text) return;
-
-      const msgObj = { user: myNick, text };
-
-      if (currentChatTab === 'general') {
-        generalMessages.push(msgObj);
-      } else {
-        if (!currentRoom) return alert("Entra a un canal para usar el chat de sala.");
-        if (!roomMessages[currentRoom]) roomMessages[currentRoom] = [];
-        roomMessages[currentRoom].push(msgObj);
-      }
-
-      input.value = "";
-      renderChat();
-    }
-
-    function renderChat() {
-      const box = document.getElementById('chatBox');
-      box.innerHTML = "";
-
-      let list = currentChatTab === 'general' ? generalMessages : (roomMessages[currentRoom] || []);
-
-      list.forEach(m => {
-        const div = document.createElement('div');
-        div.className = 'msg-item';
-        div.innerHTML = `<span class="msg-user">${m.user}:</span> <span class="msg-text">${m.text}</span>`;
-        box.appendChild(div);
-      });
-
-      box.scrollTop = box.scrollHeight;
-    }
-
-    function setupTouchEvents() {
-      const btn = document.getElementById('touchPttBtn');
-      btn.addEventListener('touchstart', (e) => { e.preventDefault(); startTalking(); });
-      btn.addEventListener('touchend', (e) => { e.preventDefault(); stopTalking(); });
-      btn.addEventListener('mousedown', startTalking);
-      btn.addEventListener('mouseup', stopTalking);
-    }
-
-    function startTalking() {
-      if (!localStream) return;
-      isTalking = true;
-      localStream.getAudioTracks()[0].enabled = true;
-      document.getElementById('micStatusTag').innerText = "HABLANDO";
-      document.getElementById('micStatusTag').style.background = "#38a169";
-      document.getElementById('touchPttBtn').classList.add('active');
-      updateSpeakingStatus(true);
-    }
-
-    function stopTalking() {
-      if (!localStream || isContinuousMic) return;
-      isTalking = false;
-      localStream.getAudioTracks()[0].enabled = false;
-      document.getElementById('micStatusTag').innerText = "SILENCIADO";
-      document.getElementById('micStatusTag').style.background = "#4a5568";
-      document.getElementById('touchPttBtn').classList.remove('active');
-      updateSpeakingStatus(false);
-    }
-
-    function updateSpeakingStatus(speaking) {
-      if (!currentRoom) return;
-      const room = rooms.find(r => r.id === currentRoom);
-      if (room) {
-        const u = room.users.find(user => user.nick === myNick);
-        if (u) u.talking = speaking;
-        renderChannels();
-      }
-    }
-
-    function toggleMic() {
-      isContinuousMic = !isContinuousMic;
-      const btn = document.getElementById('toggleMicBtn');
-      if (isContinuousMic) {
-        btn.innerText = "Mic: ON";
-        btn.style.borderColor = "#48bb78";
-        startTalking();
-      } else {
-        btn.innerText = "Mic: OFF";
-        btn.style.borderColor = "var(--border-gold)";
-        stopTalking();
-      }
-    }
-
-    function showCreateModal() { document.getElementById('createModal').classList.remove('hidden'); }
-    function hideCreateModal() { document.getElementById('createModal').classList.add('hidden'); }
-
-    function createRoom() {
-      const name = document.getElementById('newRoomName').value.trim();
-      const pass = document.getElementById('newRoomPass').value.trim();
-      if (!name) return;
-
-      const id = "room_" + Math.random().toString(36).substr(2, 5);
-      rooms.push({ id, name, pass, users: [] });
-      hideCreateModal();
-      renderChannels();
-      joinChannel(id);
     }
   </script>
 </body>
