@@ -163,53 +163,27 @@
         </div>
         <button class="wow-btn btn-full" style="margin-top: 8px;" onclick="handleLogin()">Entrar</button>
         <div style="text-align:center; margin-top:14px;">
-          <a href="#" style="color:var(--text-gold); font-size:0.8rem; text-decoration:underline;" onclick="showScreen('registerOverlay')">¿No tienes cuenta? Crear Cuenta</a>
+          <a href="#" style="color:var(--text-gold); font-size:0.8rem; text-decoration:underline;" onclick="showScreen('registerOverlay')">Registrar Nueva Cuenta</a>
         </div>
       </div>
     </div>
 
-    <!-- 2. PANTALLA DE REGISTRO / FORMULARIO -->
+    <!-- 2. PANTALLA DE REGISTRO DIRECTO -->
     <div id="registerOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
       <div style="width: 100%; max-width: 320px; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid var(--border-gold); border-radius: 8px; backdrop-filter: blur(10px);">
-        <div class="section-title" style="justify-content: center; font-size: 1rem; margin-bottom: 10px;">Crear Nueva Cuenta</div>
+        <div class="section-title" style="justify-content: center; font-size: 1rem; margin-bottom: 10px;">Crear Cuenta</div>
         
-        <label style="font-size:0.75rem; color:#a0aec0;">Correo Electrónico:</label>
-        <input type="email" id="regEmail" class="wow-input" placeholder="ejemplo@correo.com">
-
         <label style="font-size:0.75rem; color:#a0aec0;">Usuario / Nick:</label>
-        <input type="text" id="regUser" class="wow-input" placeholder="Tu usuario deseado" maxlength="20">
+        <input type="text" id="regUser" class="wow-input" placeholder="Tu usuario" maxlength="20">
 
         <label style="font-size:0.75rem; color:#a0aec0;">Contraseña:</label>
-        <input type="password" id="regPass" class="wow-input" placeholder="Contraseña segura">
+        <input type="password" id="regPass" class="wow-input" placeholder="Contraseña">
 
-        <label style="font-size:0.75rem; color:#a0aec0;">Número de Teléfono:</label>
-        <input type="tel" id="regPhone" class="wow-input" placeholder="+53 56373393">
-
-        <div class="section-title" style="margin-top:10px; font-size:0.75rem; color:#a0aec0; justify-content: center;">Enviar solicitud por:</div>
-        <div style="display:flex; gap:6px; margin-top:6px;">
-          <button class="wow-btn btn-full btn-sm" style="background:#25D366; color:#000; border:none; font-weight:bold;" onclick="submitRegistration('whatsapp')">WhatsApp</button>
-          <button class="wow-btn btn-full btn-sm" style="background:#0088cc; color:#fff; border:none; font-weight:bold;" onclick="submitRegistration('sms')">SMS</button>
-        </div>
+        <button class="wow-btn btn-full" style="margin-top: 8px;" onclick="submitDirectRegistration()">Registrar y Solicitar Acceso</button>
 
         <div style="text-align:center; margin-top:12px;">
           <a href="#" style="color:#a0aec0; font-size:0.75rem;" onclick="showScreen('loginOverlay')">← Volver al login</a>
         </div>
-      </div>
-    </div>
-
-    <!-- 3. PANTALLA DE CÓDIGO DE VERIFICACIÓN -->
-    <div id="verifyOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
-      <div style="width: 100%; max-width: 320px; background: rgba(10,25,18,0.95); padding: 20px; border: 1px solid var(--accent-green); border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
-        <div class="section-title" style="color:#68d391; justify-content: center; font-size: 1rem;">Verificación de Código</div>
-        <p style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 12px;">Ingresa el código de 6 dígitos que te envió el administrador:</p>
-        
-        <input type="text" id="verifyCodeInput" class="wow-input" placeholder="------" maxlength="6" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px;">
-
-        <div style="margin: 12px 0; font-size: 0.85rem; color: var(--text-gold);">
-          Tiempo restante: <b id="timerDisplay">05:00</b>
-        </div>
-
-        <button class="wow-btn btn-full" onclick="confirmVerifyCode()">Confirmar e Ingresar</button>
       </div>
     </div>
 
@@ -301,8 +275,6 @@
     let pttKeyName = 'SPACE';
     let isBindingKey = false;
 
-    const MY_PHONE_NUMBER = "56373393"; 
-
     const themeBackgrounds = {
       'theme-df': 'https://images.alphacoders.com/128/1288257.jpg',
       'theme-horde': 'https://images.alphacoders.com/112/112674.jpg',
@@ -331,8 +303,6 @@
 
     let allRooms = { ...baseRooms };
     let activeUsers = {};
-    let tempRegData = {};
-    let timerInterval = null;
 
     function changeTheme(themeClass) {
       document.body.className = themeClass;
@@ -394,11 +364,10 @@
       });
     }
 
-    // Lógica para autoeliminar solo salas creadas por usuarios si se quedan vacías
     function checkEmptyCustomRooms() {
       if (!db) return;
       Object.keys(allRooms).forEach(rId => {
-        if (!baseRooms[rId]) { // Es una sala creada por usuario
+        if (!baseRooms[rId]) {
           const usersInRoom = Object.values(activeUsers).filter(u => u && u.room === rId);
           if (usersInRoom.length === 0 && currentRoom !== rId) {
             db.ref('rooms/' + rId).remove();
@@ -410,7 +379,6 @@
     function showScreen(screenId) {
       document.getElementById('loginOverlay').classList.add('hidden');
       document.getElementById('registerOverlay').classList.add('hidden');
-      document.getElementById('verifyOverlay').classList.add('hidden');
       document.getElementById('mainContent').classList.add('hidden');
       document.getElementById('mobileNav').classList.add('hidden');
       document.getElementById('logoutBtn').classList.add('hidden');
@@ -427,6 +395,7 @@
 
       if (!user || !pass) return alert("Completa todos los campos.");
 
+      // LLAVE MAESTRA ADMIN
       if (user.toLowerCase() === 'admin' && pass === 'admin@#$admin') {
         isAdmin = true;
         myNick = "[Admin Oculto]";
@@ -441,7 +410,7 @@
         let safeKey = user.replace(/[.#$\/\[\]]/g, "_").toLowerCase();
         db.ref('users/' + safeKey).once('value').then(snap => {
           if (!snap.exists()) {
-            alert("Usuario no encontrado. Por favor, crea una cuenta.");
+            alert("Usuario no encontrado. Por favor, regístrate.");
           } else {
             const userData = snap.val();
             if (userData.pass !== pass) {
@@ -455,6 +424,26 @@
               proceedToConnect();
             }
           }
+        });
+      }
+    }
+
+    function submitDirectRegistration() {
+      const user = document.getElementById('regUser').value.trim();
+      const pass = document.getElementById('regPass').value.trim();
+
+      if (!user || !pass) return alert("Completa todos los campos.");
+
+      if (db) {
+        let safeKey = user.replace(/[.#$\/\[\]]/g, "_").toLowerCase();
+        db.ref('users/' + safeKey).set({
+          user: user,
+          pass: pass,
+          active: false,
+          created: Date.now()
+        }).then(() => {
+          alert("¡Cuenta registrada! Ya aparece en el panel de tu administrador para ser activada.");
+          showScreen('loginOverlay');
         });
       }
     }
@@ -487,74 +476,6 @@
       showScreen('loginOverlay');
     }
 
-    function submitRegistration(method) {
-      const email = document.getElementById('regEmail').value.trim();
-      const user = document.getElementById('regUser').value.trim();
-      const pass = document.getElementById('regPass').value.trim();
-      const phone = document.getElementById('regPhone').value.trim();
-
-      if (!email || !user || !pass || !phone) {
-        return alert("Por favor, llena todos los campos del formulario.");
-      }
-
-      tempRegData = { email, user, pass, phone };
-
-      const message = `Hola, quiero registrar mi cuenta en Wowspyk:\nEmail: ${email}\nUsuario: ${user}\nPass: ${pass}\nTeléfono: ${phone}`;
-
-      if (method === 'whatsapp') {
-        window.open(`https://api.whatsapp.com/send?phone=${MY_PHONE_NUMBER}&text=${encodeURIComponent(message)}`, '_blank');
-      } else {
-        window.open(`sms:${MY_PHONE_NUMBER}?body=${encodeURIComponent(message)}`, '_blank');
-      }
-
-      startVerifyTimer();
-      showScreen('verifyOverlay');
-    }
-
-    function startVerifyTimer() {
-      let timeLeft = 300;
-      const timerDisplay = document.getElementById('timerDisplay');
-      
-      if (timerInterval) clearInterval(timerInterval);
-
-      timerInterval = setInterval(() => {
-        let minutes = Math.floor(timeLeft / 60);
-        let seconds = timeLeft % 60;
-        timerDisplay.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
-        if (timeLeft <= 0) {
-          clearInterval(timerInterval);
-          alert("Tiempo agotado. Por favor solicita tu código nuevamente.");
-          showScreen('registerOverlay');
-        }
-        timeLeft--;
-      }, 1000);
-    }
-
-    function confirmVerifyCode() {
-      const code = document.getElementById('verifyCodeInput').value.trim();
-      if (code.length !== 6) return alert("Ingresa un código válido de 6 dígitos.");
-
-      if (db && tempRegData.user) {
-        let safeKey = tempRegData.user.replace(/[.#$\/\[\]]/g, "_").toLowerCase();
-        
-        // Guardar cuenta formalmente al confirmar el código
-        db.ref('users/' + safeKey).set({
-          email: tempRegData.email,
-          user: tempRegData.user,
-          pass: tempRegData.pass,
-          phone: tempRegData.phone,
-          confirmCode: code,
-          active: false,
-          created: Date.now()
-        }).then(() => {
-          clearInterval(timerInterval);
-          alert("¡Cuenta registrada con éxito! Espera a que el administrador active tu acceso.");
-          showScreen('loginOverlay');
-        });
-      }
-    }
-
     function toggleUserStatus(userKey, currentStatus) {
       if (!isAdmin || !db) return;
       db.ref('users/' + userKey + '/active').set(!currentStatus).then(() => {
@@ -575,10 +496,7 @@
         div.className = 'account-card';
         div.innerHTML = `
           <div style="font-weight:bold; color:var(--text-gold); font-size:0.85rem;">👤 ${u.user} (${u.active ? '<span style="color:#48bb78;">ACTIVO</span>' : '<span style="color:#e53e3e;">INACTIVO</span>'})</div>
-          <div>Mail: ${u.email}</div>
-          <div>Tel: ${u.phone}</div>
           <div>Pass: ${u.pass}</div>
-          <div>Código ingresado: <b>${u.confirmCode || 'N/A'}</b></div>
           <button class="wow-btn btn-sm ${u.active ? 'btn-danger' : ''}" style="margin-top:6px; width:100%;" onclick="toggleUserStatus('${uKey}', ${u.active})">
             ${u.active ? 'Desactivar Permiso' : '✓ Activar Permiso'}
           </button>
@@ -813,7 +731,7 @@
     function startTalking() {
       if (localStream) localStream.getAudioTracks()[0].enabled = true;
       document.getElementById('micStatusTag').innerText = "HABLANDO";
-      document.getElementById('micStatusTag').style.background = "#38a169";
+      document.getElementById('micStatusTag'].style.background = "#38a169";
       document.getElementById('touchPttBtn').classList.add('active');
       
       if (db && !isAdmin) {
@@ -824,7 +742,7 @@
     function stopTalking() {
       if (localStream) localStream.getAudioTracks()[0].enabled = false;
       document.getElementById('micStatusTag').innerText = "SILENCIADO";
-      document.getElementById('micStatusTag').style.background = "#4a5568";
+      document.getElementById('micStatusTag'].style.background = "#4a5568";
       document.getElementById('touchPttBtn').classList.remove('active');
 
       if (db && !isAdmin) {
