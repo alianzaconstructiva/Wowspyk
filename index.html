@@ -343,6 +343,10 @@
 
     function toggleModal(modalId, show) {
       document.getElementById(modalId).classList.toggle('hidden', !show);
+      // Si abre el modal de cuentas como admin, forzamos lectura inmediata
+      if (modalId === 'adminAccountsModal' && show && db) {
+        db.ref('users').once('value').then(snap => renderAdminAccounts(snap.val()));
+      }
     }
 
     function initFirebase() {
@@ -385,6 +389,7 @@
         if (currentChatTab === 'general') renderChatFromSnap(snapshot.val());
       });
 
+      // Escuchar cambios en la tabla de usuarios en tiempo real
       db.ref('users').on('value', (snapshot) => {
         if (isAdmin) renderAdminAccounts(snapshot.val());
       });
@@ -460,7 +465,6 @@
     }
 
     function handleLogout() {
-      localStorage.removeItem('wow_ts5_session');
       localStorage.removeItem('wow_ts_session');
       if (db && !isAdmin) {
         db.ref('presence/' + myId).remove();
@@ -537,7 +541,10 @@
 
     function toggleUserStatus(userKey, currentStatus) {
       if (!isAdmin || !db) return;
-      db.ref('users/' + userKey + '/active').set(!currentStatus);
+      db.ref('users/' + userKey + '/active').set(!currentStatus).then(() => {
+        // Refrescar lista de inmediato
+        db.ref('users').once('value', snap => renderAdminAccounts(snap.val()));
+      });
     }
 
     function renderAdminAccounts(users) {
@@ -545,20 +552,20 @@
       if (!container) return;
       container.innerHTML = "";
 
-      if (!users) return container.innerHTML = "<div style='color:#718096;'>Sin cuentas</div>";
+      if (!users) return container.innerHTML = "<div style='color:#718096;'>No hay cuentas registradas todavía.</div>";
 
       Object.keys(users).forEach(uKey => {
         const u = users[uKey];
         const div = document.createElement('div');
         div.className = 'account-card';
         div.innerHTML = `
-          <div style="font-weight:bold; color:var(--text-gold);">${u.user} (${u.active ? '<span style="color:#48bb78;">ACTIVO</span>' : '<span style="color:#e53e3e;">INACTIVO</span>'})</div>
+          <div style="font-weight:bold; color:var(--text-gold); font-size:0.85rem;">👤 ${u.user} (${u.active ? '<span style="color:#48bb78;">ACTIVO</span>' : '<span style="color:#e53e3e;">INACTIVO</span>'})</div>
           <div>Mail: ${u.email}</div>
           <div>Tel: ${u.phone}</div>
           <div>Pass: ${u.pass}</div>
-          <div>Código: <b>${u.confirmCode || 'N/A'}</b></div>
-          <button class="wow-btn btn-sm" style="margin-top:4px;" onclick="toggleUserStatus('${uKey}', ${u.active})">
-            ${u.active ? 'Desactivar Permiso' : 'Activar Permiso'}
+          <div>Código ingresado: <b>${u.confirmCode || 'N/A'}</b></div>
+          <button class="wow-btn btn-sm ${u.active ? 'btn-danger' : ''}" style="margin-top:6px; width:100%;" onclick="toggleUserStatus('${uKey}', ${u.active})">
+            ${u.active ? 'Desactivar Permiso' : '✓ Activar Permiso'}
           </button>
         `;
         container.appendChild(div);
@@ -789,37 +796,26 @@
     }
 
     function startTalking() {
-      if (localStream) localStream.getAudioTracks()[0].enabled = true;
-      document.getElementById('micStatusTag').innerText = "HABLANDO";
-      document.getElementById('micStatusTag').style.background = "#38a169";
-      document.getElementById('touchPttBtn').classList.add('active');
-      
-      if (db && !isAdmin) {
-        db.ref('presence/' + myId + '/talking').set(true);
-      }
-    }
-
-    function stopTalking() {
-      if (localStream) localStream.getAudioTracks()[0].enabled = false;
-      document.getElementById('micStatusTag').innerText = "SILENCIADO";
-      document.getElementById('micStatusTag').style.background = "#4a5568";
-      document.getElementById('touchPttBtn').classList.remove('active');
-
-      if (db && !isAdmin) {
-        db.ref('presence/' + myId + '/talking').set(false);
-      }
+      if (localStream) localStream.getAudioTracks()[0].enabled = false; // Por seguridad inicia en false hasta que se presione PTT
+      // Nota: la activación real del track se maneja mediante PTT
     }
 
     function toggleMic() {
       const btn = document.getElementById('toggleMicBtn');
-      if (btn.innerText.includes("OFF")) {
-        btn.innerText = "Mic: ON";
-        btn.style.borderColor = "#48bb78";
-        startTalking();
-      } else {
-        btn.innerText = "Mic: OFF";
-        btn.style.borderColor = "var(--border-gold)";
-        stopTalking();
+      if (localStream && localStream.getAudioTracks().length > 0) {
+        let track = localStream.getAudioTracks()[0];
+        track.enabled = !track.enabled;
+        if (track.enabled) {
+          btn.innerText = "Mic: ON";
+          btn.style.borderColor = "#48bb78";
+          document.getElementById('micStatusTag').innerText = "HABLANDO";
+          document.getElementById('micStatusTag').style.background = "#38a169";
+        } else {
+          btn.innerText = "Mic: OFF";
+          btn.style.borderColor = "var(--border-gold)";
+          document.getElementById('micStatusTag').innerText = "SILENCIADO";
+          document.getElementById('micStatusTag').style.background = "#4a5568";
+        }
       }
     }
 
