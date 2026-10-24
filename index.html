@@ -168,7 +168,7 @@
       </div>
     </div>
 
-    <!-- 2. PANTALLA DE REGISTRO DIRECTO -->
+    <!-- 2. PANTALLA DE REGISTRO -->
     <div id="registerOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
       <div style="width: 100%; max-width: 320px; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid var(--border-gold); border-radius: 8px; backdrop-filter: blur(10px);">
         <div class="section-title" style="justify-content: center; font-size: 1rem; margin-bottom: 10px;">Crear Cuenta</div>
@@ -179,7 +179,7 @@
         <label style="font-size:0.75rem; color:#a0aec0;">Contraseña:</label>
         <input type="password" id="regPass" class="wow-input" placeholder="Contraseña">
 
-        <button class="wow-btn btn-full" style="margin-top: 8px;" onclick="submitDirectRegistration()">Registrar y Solicitar Acceso</button>
+        <button class="wow-btn btn-full" style="margin-top: 8px;" onclick="submitDirectRegistration()">Registrar Cuenta</button>
 
         <div style="text-align:center; margin-top:12px;">
           <a href="#" style="color:#a0aec0; font-size:0.75rem;" onclick="showScreen('loginOverlay')">← Volver al login</a>
@@ -395,7 +395,7 @@
 
       if (!user || !pass) return alert("Completa todos los campos.");
 
-      // LLAVE MAESTRA ADMIN
+      // LLAVE MAESTRA ADMIN BLINDADA (Entra siempre al instante)
       if (user.toLowerCase() === 'admin' && pass === 'admin@#$admin') {
         isAdmin = true;
         myNick = "[Admin Oculto]";
@@ -425,6 +425,8 @@
             }
           }
         });
+      } else {
+        alert("Error de conexión con la base de datos.");
       }
     }
 
@@ -442,9 +444,13 @@
           active: false,
           created: Date.now()
         }).then(() => {
-          alert("¡Cuenta registrada! Ya aparece en el panel de tu administrador para ser activada.");
+          alert("¡Cuenta registrada con éxito! Ya puedes pedirle al admin que la active.");
           showScreen('loginOverlay');
+        }).catch(err => {
+          alert("Error al registrar: " + err.message);
         });
+      } else {
+        alert("No hay conexión con Firebase.");
       }
     }
 
@@ -731,7 +737,7 @@
     function startTalking() {
       if (localStream) localStream.getAudioTracks()[0].enabled = true;
       document.getElementById('micStatusTag').innerText = "HABLANDO";
-      document.getElementById('micStatusTag'].style.background = "#38a169";
+      document.getElementById('micStatusTag').style.background = "#38a169";
       document.getElementById('touchPttBtn').classList.add('active');
       
       if (db && !isAdmin) {
@@ -742,7 +748,7 @@
     function stopTalking() {
       if (localStream) localStream.getAudioTracks()[0].enabled = false;
       document.getElementById('micStatusTag').innerText = "SILENCIADO";
-      document.getElementById('micStatusTag'].style.background = "#4a5568";
+      document.getElementById('micStatusTag').style.background = "#4a5568";
       document.getElementById('touchPttBtn').classList.remove('active');
 
       if (db && !isAdmin) {
