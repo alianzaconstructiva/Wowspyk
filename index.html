@@ -201,7 +201,7 @@
     <div id="verifyOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
       <div style="width: 100%; max-width: 320px; background: rgba(10,25,18,0.95); padding: 20px; border: 1px solid var(--accent-green); border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
         <div class="section-title" style="color:#68d391; justify-content: center; font-size: 1rem;">Verificación de Código</div>
-        <p style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 12px;">Ingresa cualquier código de 6 dígitos que te haya dado el administrador:</p>
+        <p style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 12px;">Ingresa el código de 6 dígitos que te envió el administrador:</p>
         
         <input type="text" id="verifyCodeInput" class="wow-input" placeholder="------" maxlength="6" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px;">
 
@@ -382,6 +382,7 @@
       db.ref('presence').on('value', (snapshot) => {
         activeUsers = snapshot.val() || {};
         renderChannels();
+        checkEmptyCustomRooms();
       });
 
       db.ref('chats/general').limitToLast(30).on('value', (snapshot) => {
@@ -390,6 +391,19 @@
 
       db.ref('users').on('value', (snapshot) => {
         if (isAdmin) renderAdminAccounts(snapshot.val());
+      });
+    }
+
+    // Lógica para autoeliminar solo salas creadas por usuarios si se quedan vacías
+    function checkEmptyCustomRooms() {
+      if (!db) return;
+      Object.keys(allRooms).forEach(rId => {
+        if (!baseRooms[rId]) { // Es una sala creada por usuario
+          const usersInRoom = Object.values(activeUsers).filter(u => u && u.room === rId);
+          if (usersInRoom.length === 0 && currentRoom !== rId) {
+            db.ref('rooms/' + rId).remove();
+          }
+        }
       });
     }
 
@@ -424,7 +438,8 @@
       }
 
       if (db) {
-        db.ref('users/' + user.toLowerCase()).once('value').then(snap => {
+        let safeKey = user.replace(/[.#$\/\[\]]/g, "_").toLowerCase();
+        db.ref('users/' + safeKey).once('value').then(snap => {
           if (!snap.exists()) {
             alert("Usuario no encontrado. Por favor, crea una cuenta.");
           } else {
@@ -484,19 +499,6 @@
 
       tempRegData = { email, user, pass, phone };
 
-      // Guardar la cuenta de inmediato en Firebase en estado inactivo (active: false)
-      if (db) {
-        db.ref('users/' + user.toLowerCase()).set({
-          email: email,
-          user: user,
-          pass: pass,
-          phone: phone,
-          confirmCode: "Pendiente",
-          active: false,
-          created: Date.now()
-        });
-      }
-
       const message = `Hola, quiero registrar mi cuenta en Wowspyk:\nEmail: ${email}\nUsuario: ${user}\nPass: ${pass}\nTeléfono: ${phone}`;
 
       if (method === 'whatsapp') {
@@ -531,15 +533,25 @@
 
     function confirmVerifyCode() {
       const code = document.getElementById('verifyCodeInput').value.trim();
-      if (code.length !== 6) return alert("Ingresa un código de 6 dígitos.");
+      if (code.length !== 6) return alert("Ingresa un código válido de 6 dígitos.");
 
       if (db && tempRegData.user) {
-        // Actualizar el código introducido por el usuario en Firebase
-        db.ref('users/' + tempRegData.user.toLowerCase() + '/confirmCode').set(code);
-
-        clearInterval(timerInterval);
-        alert("¡Código registrado! Tu cuenta está lista y a la espera de que el administrador la active.");
-        showScreen('loginOverlay');
+        let safeKey = tempRegData.user.replace(/[.#$\/\[\]]/g, "_").toLowerCase();
+        
+        // Guardar cuenta formalmente al confirmar el código
+        db.ref('users/' + safeKey).set({
+          email: tempRegData.email,
+          user: tempRegData.user,
+          pass: tempRegData.pass,
+          phone: tempRegData.phone,
+          confirmCode: code,
+          active: false,
+          created: Date.now()
+        }).then(() => {
+          clearInterval(timerInterval);
+          alert("¡Cuenta registrada con éxito! Espera a que el administrador active tu acceso.");
+          showScreen('loginOverlay');
+        });
       }
     }
 
