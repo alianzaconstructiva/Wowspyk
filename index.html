@@ -87,6 +87,7 @@
 
     .header { padding: 10px 14px; border-bottom: 2px solid var(--border-gold-dark); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.6); }
     .header h1 { color: var(--text-gold); font-size: 1.1rem; text-transform: uppercase; text-shadow: 1px 1px 3px #000; }
+    .header-controls { display: flex; gap: 8px; align-items: center; }
     .theme-selector select { background: #0a0d12; color: var(--text-light); border: 1px solid var(--border-gold-dark); padding: 4px; border-radius: 4px; outline: none; }
     .main-layout { flex: 1; display: flex; overflow: hidden; position: relative; }
     .mobile-nav { display: flex; background: rgba(8, 11, 16, 0.98); border-top: 2px solid var(--border-gold-dark); }
@@ -124,7 +125,6 @@
     .ptt-btn { padding: 16px; font-size: 1rem; background: linear-gradient(180deg, #2b4c7e 0%, #132540 100%); border: 2px solid #4299e1; color: #ebf8ff; border-radius: 6px; touch-action: manipulation; }
     .ptt-btn.active { background: linear-gradient(180deg, #276749 0%, #123824 100%); border-color: #48bb78; }
     
-    /* MODALES FLOTANTES LIMPIOS */
     .modal-overlay { position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 10; padding: 16px; }
     .modal-box { width: 100%; max-width: 360px; background: rgba(12, 16, 24, 0.95); border: 1px solid var(--border-gold); border-radius: 8px; padding: 16px; }
 
@@ -137,14 +137,17 @@
   <div class="app-container">
     <div class="header">
       <h1>WARCRAFT TS COMMS</h1>
-      <div class="theme-selector">
-        <select id="themeSelect" onchange="changeTheme(this.value)">
-          <option value="theme-df">Dragonflight</option>
-          <option value="theme-horde">Horda</option>
-          <option value="theme-alliance">Alianza</option>
-          <option value="theme-lichking">Lich King</option>
-          <option value="theme-bc">Burning Crusade</option>
-        </select>
+      <div class="header-controls">
+        <button id="logoutBtn" class="wow-btn btn-sm btn-danger hidden" onclick="handleLogout()">Salir</button>
+        <div class="theme-selector">
+          <select id="themeSelect" onchange="changeTheme(this.value)">
+            <option value="theme-df">Dragonflight</option>
+            <option value="theme-horde">Horda</option>
+            <option value="theme-alliance">Alianza</option>
+            <option value="theme-lichking">Lich King</option>
+            <option value="theme-bc">Burning Crusade</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -194,7 +197,7 @@
       </div>
     </div>
 
-    <!-- 3. PANTALLA DE CÓDIGO DE VERIFICACIÓN (ESTILO WHATSAPP) -->
+    <!-- 3. PANTALLA DE CÓDIGO DE VERIFICACIÓN -->
     <div id="verifyOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
       <div style="width: 100%; max-width: 320px; background: rgba(10,25,18,0.95); padding: 20px; border: 1px solid var(--accent-green); border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
         <div class="section-title" style="color:#68d391; justify-content: center; font-size: 1rem;">Verificación de Código</div>
@@ -236,7 +239,6 @@
     <div id="mainContent" class="main-layout hidden">
       <div id="secChannels" class="panel-section channels-panel">
         
-        <!-- BOTONES SUPERIORES LIMPIOS -->
         <div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 12px;">
           <button class="wow-btn btn-full btn-sm" onclick="toggleModal('createRoomModal', true)">+ CREAR CANAL NUEVO</button>
           <button id="adminAccountsBtn" class="wow-btn btn-full btn-sm btn-danger hidden" onclick="toggleModal('adminAccountsModal', true)">👥 GESTIONAR CUENTAS</button>
@@ -295,7 +297,6 @@
     let localStream = null;
     let isAdmin = false;
 
-    // Configuración Tecla PTT por defecto (Espacio)
     let pttKeyCode = 'Space';
     let pttKeyName = 'SPACE';
     let isBindingKey = false;
@@ -357,6 +358,7 @@
         }
       }
       renderChannels();
+      checkSavedSession();
     }
 
     window.onload = () => {
@@ -394,8 +396,12 @@
       document.getElementById('verifyOverlay').classList.add('hidden');
       document.getElementById('mainContent').classList.add('hidden');
       document.getElementById('mobileNav').classList.add('hidden');
+      document.getElementById('logoutBtn').classList.add('hidden');
 
       document.getElementById(screenId).classList.remove('hidden');
+      if (screenId === 'mainContent') {
+        document.getElementById('logoutBtn').classList.remove('hidden');
+      }
     }
 
     function handleLogin() {
@@ -407,6 +413,7 @@
       if (user.toLowerCase() === 'admin' && pass === 'admin@#$admin') {
         isAdmin = true;
         myNick = "[Admin Oculto]";
+        localStorage.setItem('wow_ts_session', JSON.stringify({ user: myNick, admin: true }));
         document.getElementById('adminAccountsBtn').classList.remove('hidden');
         if (db) db.ref('users').once('value', snap => renderAdminAccounts(snap.val()));
         proceedToConnect();
@@ -426,11 +433,41 @@
             } else {
               isAdmin = false;
               myNick = userData.user;
+              localStorage.setItem('wow_ts_session', JSON.stringify({ user: myNick, admin: false }));
               proceedToConnect();
             }
           }
         });
       }
+    }
+
+    function checkSavedSession() {
+      const saved = localStorage.getItem('wow_ts_session');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          myNick = data.user;
+          isAdmin = data.admin;
+          if (isAdmin) {
+            document.getElementById('adminAccountsBtn').classList.remove('hidden');
+            if (db) db.ref('users').once('value', snap => renderAdminAccounts(snap.val()));
+          }
+          proceedToConnect();
+        } catch(e) {
+          localStorage.removeItem('wow_ts_session');
+        }
+      }
+    }
+
+    function handleLogout() {
+      localStorage.removeItem('wow_ts5_session');
+      localStorage.removeItem('wow_ts_session');
+      if (db && !isAdmin) {
+        db.ref('presence/' + myId).remove();
+      }
+      isAdmin = false;
+      myNick = "";
+      showScreen('loginOverlay');
     }
 
     function submitRegistration(method) {
