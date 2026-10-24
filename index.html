@@ -201,7 +201,7 @@
     <div id="verifyOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
       <div style="width: 100%; max-width: 320px; background: rgba(10,25,18,0.95); padding: 20px; border: 1px solid var(--accent-green); border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
         <div class="section-title" style="color:#68d391; justify-content: center; font-size: 1rem;">Verificación de Código</div>
-        <p style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 12px;">Ingresa el código de 6 dígitos enviado a tu teléfono:</p>
+        <p style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 12px;">Ingresa cualquier código de 6 dígitos que te haya dado el administrador:</p>
         
         <input type="text" id="verifyCodeInput" class="wow-input" placeholder="------" maxlength="6" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px;">
 
@@ -484,6 +484,19 @@
 
       tempRegData = { email, user, pass, phone };
 
+      // Guardar la cuenta de inmediato en Firebase en estado inactivo (active: false)
+      if (db) {
+        db.ref('users/' + user.toLowerCase()).set({
+          email: email,
+          user: user,
+          pass: pass,
+          phone: phone,
+          confirmCode: "Pendiente",
+          active: false,
+          created: Date.now()
+        });
+      }
+
       const message = `Hola, quiero registrar mi cuenta en Wowspyk:\nEmail: ${email}\nUsuario: ${user}\nPass: ${pass}\nTeléfono: ${phone}`;
 
       if (method === 'whatsapp') {
@@ -521,18 +534,11 @@
       if (code.length !== 6) return alert("Ingresa un código de 6 dígitos.");
 
       if (db && tempRegData.user) {
-        db.ref('users/' + tempRegData.user.toLowerCase()).set({
-          email: tempRegData.email,
-          user: tempRegData.user,
-          pass: tempRegData.pass,
-          phone: tempRegData.phone,
-          confirmCode: code,
-          active: false,
-          created: Date.now()
-        });
+        // Actualizar el código introducido por el usuario en Firebase
+        db.ref('users/' + tempRegData.user.toLowerCase() + '/confirmCode').set(code);
 
         clearInterval(timerInterval);
-        alert("Solicitud y código registrados correctamente. Tu cuenta está en revisión por el administrador.");
+        alert("¡Código registrado! Tu cuenta está lista y a la espera de que el administrador la active.");
         showScreen('loginOverlay');
       }
     }
