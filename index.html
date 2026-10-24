@@ -183,7 +183,7 @@
         <input type="password" id="regPass" class="wow-input" placeholder="Contraseña segura">
 
         <label style="font-size:0.75rem; color:#a0aec0;">Número de Teléfono:</label>
-        <input type="tel" id="regPhone" class="wow-input" placeholder="+53 50000000">
+        <input type="tel" id="regPhone" class="wow-input" placeholder="+53 56373393">
 
         <div class="section-title" style="margin-top:10px; font-size:0.75rem; color:#a0aec0; justify-content: center;">Enviar solicitud por:</div>
         <div style="display:flex; gap:6px; margin-top:6px;">
@@ -301,7 +301,7 @@
     let pttKeyName = 'SPACE';
     let isBindingKey = false;
 
-    const MY_PHONE_NUMBER = "5350000000"; 
+    const MY_PHONE_NUMBER = "56373393"; 
 
     const themeBackgrounds = {
       'theme-df': 'https://images.alphacoders.com/128/1288257.jpg',
@@ -343,7 +343,6 @@
 
     function toggleModal(modalId, show) {
       document.getElementById(modalId).classList.toggle('hidden', !show);
-      // Si abre el modal de cuentas como admin, forzamos lectura inmediata
       if (modalId === 'adminAccountsModal' && show && db) {
         db.ref('users').once('value').then(snap => renderAdminAccounts(snap.val()));
       }
@@ -389,7 +388,6 @@
         if (currentChatTab === 'general') renderChatFromSnap(snapshot.val());
       });
 
-      // Escuchar cambios en la tabla de usuarios en tiempo real
       db.ref('users').on('value', (snapshot) => {
         if (isAdmin) renderAdminAccounts(snapshot.val());
       });
@@ -542,7 +540,6 @@
     function toggleUserStatus(userKey, currentStatus) {
       if (!isAdmin || !db) return;
       db.ref('users/' + userKey + '/active').set(!currentStatus).then(() => {
-        // Refrescar lista de inmediato
         db.ref('users').once('value', snap => renderAdminAccounts(snap.val()));
       });
     }
@@ -796,26 +793,37 @@
     }
 
     function startTalking() {
-      if (localStream) localStream.getAudioTracks()[0].enabled = false; // Por seguridad inicia en false hasta que se presione PTT
-      // Nota: la activación real del track se maneja mediante PTT
+      if (localStream) localStream.getAudioTracks()[0].enabled = true;
+      document.getElementById('micStatusTag').innerText = "HABLANDO";
+      document.getElementById('micStatusTag').style.background = "#38a169";
+      document.getElementById('touchPttBtn').classList.add('active');
+      
+      if (db && !isAdmin) {
+        db.ref('presence/' + myId + '/talking').set(true);
+      }
+    }
+
+    function stopTalking() {
+      if (localStream) localStream.getAudioTracks()[0].enabled = false;
+      document.getElementById('micStatusTag').innerText = "SILENCIADO";
+      document.getElementById('micStatusTag').style.background = "#4a5568";
+      document.getElementById('touchPttBtn').classList.remove('active');
+
+      if (db && !isAdmin) {
+        db.ref('presence/' + myId + '/talking').set(false);
+      }
     }
 
     function toggleMic() {
       const btn = document.getElementById('toggleMicBtn');
-      if (localStream && localStream.getAudioTracks().length > 0) {
-        let track = localStream.getAudioTracks()[0];
-        track.enabled = !track.enabled;
-        if (track.enabled) {
-          btn.innerText = "Mic: ON";
-          btn.style.borderColor = "#48bb78";
-          document.getElementById('micStatusTag').innerText = "HABLANDO";
-          document.getElementById('micStatusTag').style.background = "#38a169";
-        } else {
-          btn.innerText = "Mic: OFF";
-          btn.style.borderColor = "var(--border-gold)";
-          document.getElementById('micStatusTag').innerText = "SILENCIADO";
-          document.getElementById('micStatusTag').style.background = "#4a5568";
-        }
+      if (btn.innerText.includes("OFF")) {
+        btn.innerText = "Mic: ON";
+        btn.style.borderColor = "#48bb78";
+        startTalking();
+      } else {
+        btn.innerText = "Mic: OFF";
+        btn.style.borderColor = "var(--border-gold)";
+        stopTalking();
       }
     }
 
