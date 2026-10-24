@@ -3,30 +3,91 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Warcraft TS Comms - Realtime</title>
+  <title>Warcraft TS Comms - ComercioSeguro</title>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <style>
     :root {
       --bg-dark: #07090e;
-      --panel-bg: rgba(16, 20, 28, 0.95);
+      --panel-bg: rgba(10, 14, 22, 0.92);
       --border-gold: #c89b3c;
       --border-gold-dark: #6e5223;
       --text-gold: #f0ac00;
       --text-light: #cdbe91;
       --accent-green: #38a169;
+      --bg-image: url('https://images.alphacoders.com/128/1288257.jpg');
     }
 
-    body.theme-horde { --border-gold: #a32222; --border-gold-dark: #540e0e; --text-gold: #ff4d4d; background: #0d0505; }
-    body.theme-alliance { --border-gold: #2b6cb0; --border-gold-dark: #1a365d; --text-gold: #63b3ed; background: #050b14; }
-    body.theme-lichking { --border-gold: #319795; --border-gold-dark: #1d4044; --text-gold: #76e4f7; background: #040e14; }
-    body.theme-bc { --border-gold: #38a169; --border-gold-dark: #1c4532; --text-gold: #68d391; background: #041208; }
+    body.theme-horde { 
+      --border-gold: #a32222; 
+      --border-gold-dark: #540e0e; 
+      --text-gold: #ff4d4d; 
+      --bg-image: url('https://images.alphacoders.com/112/112674.jpg');
+    }
+    body.theme-alliance { 
+      --border-gold: #2b6cb0; 
+      --border-gold-dark: #1a365d; 
+      --text-gold: #63b3ed; 
+      --bg-image: url('https://images.alphacoders.com/629/629810.jpg');
+    }
+    body.theme-lichking { 
+      --border-gold: #319795; 
+      --border-gold-dark: #1d4044; 
+      --text-gold: #76e4f7; 
+      --bg-image: url('https://images.alphacoders.com/835/83577.jpg');
+    }
+    body.theme-bc { 
+      --border-gold: #38a169; 
+      --border-gold-dark: #1c4532; 
+      --text-gold: #68d391; 
+      --bg-image: url('https://images.alphacoders.com/102/102175.jpg');
+    }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; user-select: none; }
-    body { background-color: var(--bg-dark); color: var(--text-light); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-    .app-container { width: 100%; max-width: 900px; height: 100vh; max-height: 800px; background: var(--panel-bg); border: 2px solid var(--border-gold-dark); display: flex; flex-direction: column; position: relative; }
-    .header { padding: 10px 14px; border-bottom: 2px solid var(--border-gold-dark); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.4); }
-    .header h1 { color: var(--text-gold); font-size: 1.1rem; text-transform: uppercase; }
-    .theme-selector select { background: #0a0d12; color: var(--text-light); border: 1px solid var(--border-gold-dark); padding: 4px; border-radius: 4px; }
+    
+    body { 
+      background-color: var(--bg-dark); 
+      background-image: var(--bg-image);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      color: var(--text-light); 
+      display: flex; 
+      justify-content: center; 
+      align-items: center; 
+      min-height: 100vh; 
+      transition: background-image 0.5s ease-in-out;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.70);
+      z-index: 0;
+    }
+
+    .app-container { 
+      width: 100%; 
+      max-width: 950px; 
+      height: 100vh; 
+      max-height: 850px; 
+      background: var(--panel-bg); 
+      border: 2px solid var(--border-gold-dark); 
+      display: flex; 
+      flex-direction: column; 
+      position: relative; 
+      z-index: 1;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 20px rgba(0,0,0,0.8);
+    }
+
+    .header { padding: 10px 14px; border-bottom: 2px solid var(--border-gold-dark); display: flex; justify-content: space-between; align-items: center; background: rgba(0, 0, 0, 0.6); }
+    .header h1 { color: var(--text-gold); font-size: 1.1rem; text-transform: uppercase; text-shadow: 1px 1px 3px #000; }
+    .theme-selector select { background: #0a0d12; color: var(--text-light); border: 1px solid var(--border-gold-dark); padding: 4px; border-radius: 4px; outline: none; }
     .main-layout { flex: 1; display: flex; overflow: hidden; position: relative; }
     .mobile-nav { display: flex; background: rgba(8, 11, 16, 0.98); border-top: 2px solid var(--border-gold-dark); }
     @media (min-width: 768px) { .mobile-nav { display: none; } }
@@ -35,42 +96,49 @@
     .panel-section { flex: 1; display: flex; flex-direction: column; padding: 12px; overflow-y: auto; }
     @media (max-width: 767px) { .panel-section.mobile-hidden { display: none !important; } }
     .channels-panel { width: 100%; border-right: 1px solid var(--border-gold-dark); }
-    @media (min-width: 768px) { .channels-panel { width: 320px; } }
+    @media (min-width: 768px) { .channels-panel { width: 340px; } }
     .content-panel { flex: 1; display: flex; flex-direction: column; gap: 10px; }
     .section-title { font-size: 0.85rem; color: var(--text-gold); text-transform: uppercase; font-weight: bold; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .wow-input { width: 100%; padding: 8px 10px; background: #080a0e; border: 1px solid var(--border-gold-dark); color: #fff; border-radius: 3px; font-size: 0.85rem; outline: none; }
+    .wow-input { width: 100%; padding: 8px 10px; background: rgba(8, 10, 14, 0.9); border: 1px solid var(--border-gold-dark); color: #fff; border-radius: 3px; font-size: 0.85rem; outline: none; margin-bottom: 6px; }
     .wow-btn { padding: 8px 12px; background: linear-gradient(180deg, #4a2d18 0%, #261308 100%); border: 1px solid var(--border-gold); color: var(--text-gold); font-weight: bold; font-size: 0.8rem; text-transform: uppercase; border-radius: 4px; cursor: pointer; }
     .wow-btn.btn-full { width: 100%; }
+    .wow-btn.btn-sm { padding: 4px 8px; font-size: 0.7rem; }
     .wow-btn.btn-danger { background: linear-gradient(180deg, #611818 0%, #300a0a 100%); border-color: #e53e3e; color: #feb2b2; }
     .channel-tree { display: flex; flex-direction: column; gap: 8px; flex: 1; overflow-y: auto; }
-    .channel-card { background: rgba(10, 14, 20, 0.8); border: 1px solid var(--border-gold-dark); border-radius: 4px; padding: 10px; cursor: pointer; }
-    .channel-card.active { border-color: var(--accent-green); background: rgba(15, 35, 22, 0.8); }
-    .channel-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; font-weight: bold; color: #fff; }
+    .channel-card { background: rgba(10, 14, 20, 0.85); border: 1px solid var(--border-gold-dark); border-radius: 4px; padding: 10px; cursor: pointer; }
+    .channel-card.active { border-color: var(--accent-green); background: rgba(15, 35, 22, 0.85); }
+    .channel-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; font-weight: bold; color: #fff; }
     .channel-users { margin-top: 6px; padding-left: 10px; display: flex; flex-direction: column; gap: 4px; border-left: 2px solid var(--border-gold-dark); }
-    .user-tag { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 6px; }
+    .user-tag { font-size: 0.8rem; color: var(--text-light); display: flex; align-items: center; gap: 6px; justify-content: space-between; }
     .user-dot { width: 8px; height: 8px; border-radius: 50%; background: #4a5568; }
     .user-dot.speaking { background: #48bb78; box-shadow: 0 0 6px #48bb78; }
     .chat-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
-    .chat-tab-btn { padding: 6px 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--border-gold-dark); color: #718096; font-size: 0.75rem; border-radius: 3px; cursor: pointer; }
+    .chat-tab-btn { padding: 6px 12px; background: rgba(0,0,0,0.5); border: 1px solid var(--border-gold-dark); color: #718096; font-size: 0.75rem; border-radius: 3px; cursor: pointer; }
     .chat-tab-btn.active { background: rgba(200, 155, 60, 0.15); border-color: var(--border-gold); color: var(--text-gold); }
-    .chat-messages { flex: 1; background: rgba(5, 7, 10, 0.8); border: 1px solid var(--border-gold-dark); border-radius: 4px; padding: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; min-height: 140px; }
+    .chat-messages { flex: 1; background: rgba(5, 7, 10, 0.85); border: 1px solid var(--border-gold-dark); border-radius: 4px; padding: 8px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; min-height: 140px; }
     .msg-item { font-size: 0.8rem; line-height: 1.3; }
     .msg-user { color: var(--text-gold); font-weight: bold; }
     .msg-text { color: #e2e8f0; }
     .chat-input-bar { display: flex; gap: 6px; margin-top: 6px; }
-    .voice-box { background: rgba(0, 0, 0, 0.4); border: 1px solid var(--border-gold-dark); padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; }
+    .voice-box { background: rgba(0, 0, 0, 0.5); border: 1px solid var(--border-gold-dark); padding: 10px; border-radius: 4px; display: flex; flex-direction: column; gap: 8px; }
     .ptt-btn { padding: 16px; font-size: 1rem; background: linear-gradient(180deg, #2b4c7e 0%, #132540 100%); border: 2px solid #4299e1; color: #ebf8ff; border-radius: 6px; touch-action: manipulation; }
     .ptt-btn.active { background: linear-gradient(180deg, #276749 0%, #123824 100%); border-color: #48bb78; }
+    
+    /* MODALES FLOTANTES LIMPIOS */
+    .modal-overlay { position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: center; z-index: 10; padding: 16px; }
+    .modal-box { width: 100%; max-width: 360px; background: rgba(12, 16, 24, 0.95); border: 1px solid var(--border-gold); border-radius: 8px; padding: 16px; }
+
     .hidden { display: none !important; }
+    .account-card { background: rgba(0,0,0,0.6); border: 1px solid var(--border-gold-dark); padding: 6px; border-radius: 4px; margin-bottom: 6px; font-size: 0.75rem; }
   </style>
 </head>
 <body class="theme-df">
 
   <div class="app-container">
     <div class="header">
-      <h1>WARCRAFT TS VOICE</h1>
+      <h1>WARCRAFT TS COMMS</h1>
       <div class="theme-selector">
-        <select id="themeSelect" onchange="document.body.className = this.value">
+        <select id="themeSelect" onchange="changeTheme(this.value)">
           <option value="theme-df">Dragonflight</option>
           <option value="theme-horde">Horda</option>
           <option value="theme-alliance">Alianza</option>
@@ -80,23 +148,102 @@
       </div>
     </div>
 
-    <!-- PANTALLA DE INGRESO -->
+    <!-- 1. PANTALLA DE INICIO DE SESIÓN -->
     <div id="loginOverlay" class="panel-section" style="justify-content: center; align-items: center;">
-      <div style="width: 100%; max-width: 320px; background: rgba(0,0,0,0.6); padding: 16px; border: 1px solid var(--border-gold); border-radius: 6px;">
-        <div class="section-title">Ingresar al Servidor</div>
+      <div style="width: 100%; max-width: 320px; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid var(--border-gold); border-radius: 8px; backdrop-filter: blur(10px);">
+        <div class="section-title" style="justify-content: center; font-size: 1rem; margin-bottom: 12px;">Iniciar Sesión</div>
         <div style="margin-bottom: 10px;">
-          <label style="font-size:0.75rem; color:#a0aec0;">Tu Nick:</label>
-          <input type="text" id="nickInput" class="wow-input" placeholder="Ej: Thrall, Arthas..." maxlength="15">
+          <label style="font-size:0.75rem; color:#a0aec0;">Usuario / Nick:</label>
+          <input type="text" id="loginUser" class="wow-input" placeholder="Tu usuario" maxlength="20">
+          <label style="font-size:0.75rem; color:#a0aec0; margin-top:6px; display:block;">Contraseña:</label>
+          <input type="password" id="loginPass" class="wow-input" placeholder="Tu contraseña">
         </div>
-        <button id="connectBtn" class="wow-btn btn-full" onclick="enterServer()">Cargando Servidor...</button>
+        <button class="wow-btn btn-full" style="margin-top: 8px;" onclick="handleLogin()">Entrar</button>
+        <div style="text-align:center; margin-top:14px;">
+          <a href="#" style="color:var(--text-gold); font-size:0.8rem; text-decoration:underline;" onclick="showScreen('registerOverlay')">¿No tienes cuenta? Crear Cuenta</a>
+        </div>
       </div>
     </div>
 
-    <!-- LAYOUT PRINCIPAL -->
+    <!-- 2. PANTALLA DE REGISTRO / FORMULARIO -->
+    <div id="registerOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
+      <div style="width: 100%; max-width: 320px; background: rgba(0,0,0,0.85); padding: 20px; border: 1px solid var(--border-gold); border-radius: 8px; backdrop-filter: blur(10px);">
+        <div class="section-title" style="justify-content: center; font-size: 1rem; margin-bottom: 10px;">Crear Nueva Cuenta</div>
+        
+        <label style="font-size:0.75rem; color:#a0aec0;">Correo Electrónico:</label>
+        <input type="email" id="regEmail" class="wow-input" placeholder="ejemplo@correo.com">
+
+        <label style="font-size:0.75rem; color:#a0aec0;">Usuario / Nick:</label>
+        <input type="text" id="regUser" class="wow-input" placeholder="Tu usuario deseado" maxlength="20">
+
+        <label style="font-size:0.75rem; color:#a0aec0;">Contraseña:</label>
+        <input type="password" id="regPass" class="wow-input" placeholder="Contraseña segura">
+
+        <label style="font-size:0.75rem; color:#a0aec0;">Número de Teléfono:</label>
+        <input type="tel" id="regPhone" class="wow-input" placeholder="+53 50000000">
+
+        <div class="section-title" style="margin-top:10px; font-size:0.75rem; color:#a0aec0; justify-content: center;">Enviar solicitud por:</div>
+        <div style="display:flex; gap:6px; margin-top:6px;">
+          <button class="wow-btn btn-full btn-sm" style="background:#25D366; color:#000; border:none; font-weight:bold;" onclick="submitRegistration('whatsapp')">WhatsApp</button>
+          <button class="wow-btn btn-full btn-sm" style="background:#0088cc; color:#fff; border:none; font-weight:bold;" onclick="submitRegistration('sms')">SMS</button>
+        </div>
+
+        <div style="text-align:center; margin-top:12px;">
+          <a href="#" style="color:#a0aec0; font-size:0.75rem;" onclick="showScreen('loginOverlay')">← Volver al login</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. PANTALLA DE CÓDIGO DE VERIFICACIÓN (ESTILO WHATSAPP) -->
+    <div id="verifyOverlay" class="panel-section hidden" style="justify-content: center; align-items: center;">
+      <div style="width: 100%; max-width: 320px; background: rgba(10,25,18,0.95); padding: 20px; border: 1px solid var(--accent-green); border-radius: 8px; text-align: center; backdrop-filter: blur(10px);">
+        <div class="section-title" style="color:#68d391; justify-content: center; font-size: 1rem;">Verificación de Código</div>
+        <p style="font-size: 0.78rem; color: #e2e8f0; margin-bottom: 12px;">Ingresa el código de 6 dígitos enviado a tu teléfono:</p>
+        
+        <input type="text" id="verifyCodeInput" class="wow-input" placeholder="------" maxlength="6" style="text-align: center; font-size: 1.4rem; letter-spacing: 6px;">
+
+        <div style="margin: 12px 0; font-size: 0.85rem; color: var(--text-gold);">
+          Tiempo restante: <b id="timerDisplay">05:00</b>
+        </div>
+
+        <button class="wow-btn btn-full" onclick="confirmVerifyCode()">Confirmar e Ingresar</button>
+      </div>
+    </div>
+
+    <!-- MODAL POPUP: CREAR CANAL NUEVO -->
+    <div id="createRoomModal" class="modal-overlay hidden">
+      <div class="modal-box">
+        <div class="section-title">Crear Nuevo Canal</div>
+        <input type="text" id="newRoomName" class="wow-input" placeholder="Nombre de la sala...">
+        <input type="password" id="newRoomPass" class="wow-input" placeholder="Contraseña (opcional)">
+        <div style="display:flex; gap:6px; margin-top:8px;">
+          <button class="wow-btn btn-full" onclick="createCustomRoom()">Aceptar y Crear</button>
+          <button class="wow-btn btn-full btn-danger" onclick="toggleModal('createRoomModal', false)">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL POPUP: GESTIONAR CUENTAS (ADMIN) -->
+    <div id="adminAccountsModal" class="modal-overlay hidden">
+      <div class="modal-box" style="max-width:400px;">
+        <div class="section-title" style="color:#feb2b2;">Cuentas Registradas</div>
+        <div id="accountsAdminList" style="max-height: 280px; overflow-y: auto; margin-bottom: 10px;"></div>
+        <button class="wow-btn btn-full btn-danger" onclick="toggleModal('adminAccountsModal', false)">Cerrar</button>
+      </div>
+    </div>
+
+    <!-- LAYOUT PRINCIPAL DE LA APP -->
     <div id="mainContent" class="main-layout hidden">
       <div id="secChannels" class="panel-section channels-panel">
+        
+        <!-- BOTONES SUPERIORES LIMPIOS -->
+        <div style="display:flex; flex-direction:column; gap:6px; margin-bottom: 12px;">
+          <button class="wow-btn btn-full btn-sm" onclick="toggleModal('createRoomModal', true)">+ CREAR CANAL NUEVO</button>
+          <button id="adminAccountsBtn" class="wow-btn btn-full btn-sm btn-danger hidden" onclick="toggleModal('adminAccountsModal', true)">👥 GESTIONAR CUENTAS</button>
+        </div>
+
         <div class="section-title">
-          <span>Canales</span>
+          <span>Canales de Voz (TeamSpeak)</span>
         </div>
         <div id="channelTree" class="channel-tree"></div>
       </div>
@@ -104,15 +251,16 @@
       <div id="secChat" class="panel-section content-panel mobile-hidden">
         <div class="voice-box">
           <div style="display:flex; justify-content:space-between; align-items:center;">
-            <span style="font-size:0.8rem;">Canal: <b id="currentRoomLabel" style="color:#fff;">Ninguno</b></span>
+            <span style="font-size:0.8rem;">Canal Activo: <b id="currentRoomLabel" style="color:#fff;">Lobby Principal</b></span>
             <span id="micStatusTag" style="font-size:0.7rem; padding:2px 6px; background:#4a5568; border-radius:10px;">SILENCIADO</span>
           </div>
 
-          <button id="touchPttBtn" class="wow-btn ptt-btn">MANTENER PARA HABLAR</button>
+          <button id="touchPttBtn" class="wow-btn ptt-btn">MANTENER PARA HABLAR (PTT)</button>
 
           <div style="display:flex; gap:6px;">
             <button id="toggleMicBtn" class="wow-btn btn-full" onclick="toggleMic()">Mic: OFF</button>
-            <button class="wow-btn btn-full btn-danger" onclick="leaveChannel()">Salir Canal</button>
+            <button id="bindKeyBtn" class="wow-btn btn-full" onclick="startKeyBinding()">⚙️ TECLA: SPACE</button>
+            <button class="wow-btn btn-full btn-danger" onclick="leaveChannel()">Ir al Lobby</button>
           </div>
         </div>
 
@@ -125,7 +273,7 @@
           <div id="chatBox" class="chat-messages"></div>
 
           <div class="chat-input-bar">
-            <input type="text" id="msgInput" class="wow-input" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') sendMsg()">
+            <input type="text" id="msgInput" class="wow-input" style="margin-bottom:0;" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') sendMsg()">
             <button class="wow-btn" onclick="sendMsg()">Enviar</button>
           </div>
         </div>
@@ -138,117 +286,302 @@
     </div>
   </div>
 
-  <!-- Carga segura de Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
   <script>
     let db = null;
     let myNick = "";
     let myId = "user_" + Math.random().toString(36).substr(2, 6);
-    let currentRoom = null;
+    let currentRoom = 'lobby';
     let currentChatTab = "general";
     let localStream = null;
+    let isAdmin = false;
 
-    let rooms = {
-      lobby: { name: "Lobby Principal", users: {} },
-      raid25: { name: "Raid ICC 25", users: {} },
-      pvp: { name: "Arenas / PVP", users: {} }
+    // Configuración Tecla PTT por defecto (Espacio)
+    let pttKeyCode = 'Space';
+    let pttKeyName = 'SPACE';
+    let isBindingKey = false;
+
+    const MY_PHONE_NUMBER = "5350000000"; 
+
+    const themeBackgrounds = {
+      'theme-df': 'https://images.alphacoders.com/128/1288257.jpg',
+      'theme-horde': 'https://images.alphacoders.com/112/112674.jpg',
+      'theme-alliance': 'https://images.alphacoders.com/629/629810.jpg',
+      'theme-lichking': 'https://images.alphacoders.com/835/83577.jpg',
+      'theme-bc': 'https://images.alphacoders.com/102/102175.jpg'
     };
 
-    // Carga robusta de Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDHd_O5RYR88WFWgdhaZiK5RVvXRmExyAM",
+      authDomain: "comercioseguro.firebaseapp.com",
+      databaseURL: "https://comercioseguro-default-rtdb.firebaseio.com",
+      projectId: "comercioseguro",
+      storageBucket: "comercioseguro.firebasestorage.app",
+      messagingSenderId: "16500883822",
+      appId: "1:16500883822:web:0b9cdd93325ac7f564c17f"
+    };
+
+    let baseRooms = {
+      lobby: { name: "Lobby Principal", pass: "" },
+      pvp: { name: "⚔️ Arenas / PVP", pass: "" },
+      raid25: { name: "🐉 Raid ICC 25", pass: "" },
+      mazmorras: { name: "🛡️ Mazmorras Míticas", pass: "" },
+      oficiales: { name: "🔒 Oficiales (Privado)", pass: "1234" }
+    };
+
+    let allRooms = { ...baseRooms };
+    let activeUsers = {};
+    let tempRegData = {};
+    let timerInterval = null;
+
+    function changeTheme(themeClass) {
+      document.body.className = themeClass;
+      if (themeBackgrounds[themeClass]) {
+        document.body.style.backgroundImage = `url('${themeBackgrounds[themeClass]}')`;
+      }
+    }
+
+    function toggleModal(modalId, show) {
+      document.getElementById(modalId).classList.toggle('hidden', !show);
+    }
+
     function initFirebase() {
       if (typeof firebase !== 'undefined') {
-        const firebaseConfig = {
-          databaseURL: "https://wowts-default-rtdb.firebaseio.com"
-        };
-        if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
+        try {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+          }
+          db = firebase.database();
+          setupListeners();
+        } catch(e) {
+          console.warn("Error inicializando Firebase:", e);
         }
-        db = firebase.database();
-        document.getElementById('connectBtn').innerText = "Conectar";
-        setupListeners();
-      } else {
-        setTimeout(initFirebase, 300); // Reintentar hasta que descargue la librería
       }
+      renderChannels();
     }
 
     window.onload = () => {
       setupTouchEvents();
-      if (localStorage.getItem('wow_ts_nick')) {
-        document.getElementById('nickInput').value = localStorage.getItem('wow_ts_nick');
-      }
+      setupKeyEvents();
       initFirebase();
     };
 
     function setupListeners() {
       if (!db) return;
 
-      db.ref('presence').on('value', (snapshot) => {
-        const activeUsers = snapshot.val() || {};
-        Object.keys(rooms).forEach(r => rooms[r].users = {});
+      db.ref('rooms').on('value', (snapshot) => {
+        const customRooms = snapshot.val() || {};
+        allRooms = { ...baseRooms, ...customRooms };
+        renderChannels();
+      });
 
-        Object.keys(activeUsers).forEach(uid => {
-          const u = activeUsers[uid];
-          if (u.room && rooms[u.room]) {
-            rooms[u.room].users[uid] = u;
-          }
-        });
+      db.ref('presence').on('value', (snapshot) => {
+        activeUsers = snapshot.val() || {};
         renderChannels();
       });
 
       db.ref('chats/general').limitToLast(30).on('value', (snapshot) => {
         if (currentChatTab === 'general') renderChatFromSnap(snapshot.val());
       });
+
+      db.ref('users').on('value', (snapshot) => {
+        if (isAdmin) renderAdminAccounts(snapshot.val());
+      });
     }
 
-    function enterServer() {
-      if (!db) return alert("Cargando servicios, intenta de nuevo en un segundo...");
-      const nick = document.getElementById('nickInput').value.trim();
-      if (!nick) return alert("Escribe un nick válido.");
-
-      myNick = nick;
-      localStorage.setItem('wow_ts_nick', nick);
-
+    function showScreen(screenId) {
       document.getElementById('loginOverlay').classList.add('hidden');
-      document.getElementById('mainContent').classList.remove('hidden');
-      document.getElementById('mobileNav').classList.remove('hidden');
+      document.getElementById('registerOverlay').classList.add('hidden');
+      document.getElementById('verifyOverlay').classList.add('hidden');
+      document.getElementById('mainContent').classList.add('hidden');
+      document.getElementById('mobileNav').classList.add('hidden');
 
-      db.ref('presence/' + myId).set({
-        nick: myNick,
-        room: 'lobby',
-        talking: false
+      document.getElementById(screenId).classList.remove('hidden');
+    }
+
+    function handleLogin() {
+      const user = document.getElementById('loginUser').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+
+      if (!user || !pass) return alert("Completa todos los campos.");
+
+      if (user.toLowerCase() === 'admin' && pass === 'admin@#$admin') {
+        isAdmin = true;
+        myNick = "[Admin Oculto]";
+        document.getElementById('adminAccountsBtn').classList.remove('hidden');
+        if (db) db.ref('users').once('value', snap => renderAdminAccounts(snap.val()));
+        proceedToConnect();
+        return;
+      }
+
+      if (db) {
+        db.ref('users/' + user.toLowerCase()).once('value').then(snap => {
+          if (!snap.exists()) {
+            alert("Usuario no encontrado. Por favor, crea una cuenta.");
+          } else {
+            const userData = snap.val();
+            if (userData.pass !== pass) {
+              alert("Contraseña incorrecta.");
+            } else if (userData.active !== true) {
+              alert("Tu cuenta aún no ha sido activada por el administrador.");
+            } else {
+              isAdmin = false;
+              myNick = userData.user;
+              proceedToConnect();
+            }
+          }
+        });
+      }
+    }
+
+    function submitRegistration(method) {
+      const email = document.getElementById('regEmail').value.trim();
+      const user = document.getElementById('regUser').value.trim();
+      const pass = document.getElementById('regPass').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+
+      if (!email || !user || !pass || !phone) {
+        return alert("Por favor, llena todos los campos del formulario.");
+      }
+
+      tempRegData = { email, user, pass, phone };
+
+      const message = `Hola, quiero registrar mi cuenta en Wowspyk:\nEmail: ${email}\nUsuario: ${user}\nPass: ${pass}\nTeléfono: ${phone}`;
+
+      if (method === 'whatsapp') {
+        window.open(`https://api.whatsapp.com/send?phone=${MY_PHONE_NUMBER}&text=${encodeURIComponent(message)}`, '_blank');
+      } else {
+        window.open(`sms:${MY_PHONE_NUMBER}?body=${encodeURIComponent(message)}`, '_blank');
+      }
+
+      startVerifyTimer();
+      showScreen('verifyOverlay');
+    }
+
+    function startVerifyTimer() {
+      let timeLeft = 300;
+      const timerDisplay = document.getElementById('timerDisplay');
+      
+      if (timerInterval) clearInterval(timerInterval);
+
+      timerInterval = setInterval(() => {
+        let minutes = Math.floor(timeLeft / 60);
+        let seconds = timeLeft % 60;
+        timerDisplay.innerText = `${minutes < 10 ? '0' : ''}${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          alert("Tiempo agotado. Por favor solicita tu código nuevamente.");
+          showScreen('registerOverlay');
+        }
+        timeLeft--;
+      }, 1000);
+    }
+
+    function confirmVerifyCode() {
+      const code = document.getElementById('verifyCodeInput').value.trim();
+      if (code.length !== 6) return alert("Ingresa un código de 6 dígitos.");
+
+      if (db && tempRegData.user) {
+        db.ref('users/' + tempRegData.user.toLowerCase()).set({
+          email: tempRegData.email,
+          user: tempRegData.user,
+          pass: tempRegData.pass,
+          phone: tempRegData.phone,
+          confirmCode: code,
+          active: false,
+          created: Date.now()
+        });
+
+        clearInterval(timerInterval);
+        alert("Solicitud y código registrados correctamente. Tu cuenta está en revisión por el administrador.");
+        showScreen('loginOverlay');
+      }
+    }
+
+    function toggleUserStatus(userKey, currentStatus) {
+      if (!isAdmin || !db) return;
+      db.ref('users/' + userKey + '/active').set(!currentStatus);
+    }
+
+    function renderAdminAccounts(users) {
+      const container = document.getElementById('accountsAdminList');
+      if (!container) return;
+      container.innerHTML = "";
+
+      if (!users) return container.innerHTML = "<div style='color:#718096;'>Sin cuentas</div>";
+
+      Object.keys(users).forEach(uKey => {
+        const u = users[uKey];
+        const div = document.createElement('div');
+        div.className = 'account-card';
+        div.innerHTML = `
+          <div style="font-weight:bold; color:var(--text-gold);">${u.user} (${u.active ? '<span style="color:#48bb78;">ACTIVO</span>' : '<span style="color:#e53e3e;">INACTIVO</span>'})</div>
+          <div>Mail: ${u.email}</div>
+          <div>Tel: ${u.phone}</div>
+          <div>Pass: ${u.pass}</div>
+          <div>Código: <b>${u.confirmCode || 'N/A'}</b></div>
+          <button class="wow-btn btn-sm" style="margin-top:4px;" onclick="toggleUserStatus('${uKey}', ${u.active})">
+            ${u.active ? 'Desactivar Permiso' : 'Activar Permiso'}
+          </button>
+        `;
+        container.appendChild(div);
       });
+    }
 
-      db.ref('presence/' + myId).onDisconnect().remove();
+    function proceedToConnect() {
+      showScreen('mainContent');
+      document.getElementById('mobileNav').classList.remove('hidden');
+      updateMyPresence();
       joinChannel('lobby');
+    }
+
+    function updateMyPresence() {
+      if (db) {
+        if (isAdmin) return;
+        db.ref('presence/' + myId).set({
+          nick: myNick,
+          room: currentRoom,
+          talking: false
+        });
+        db.ref('presence/' + myId).onDisconnect().remove();
+      } else {
+        if (!isAdmin) {
+          activeUsers[myId] = { nick: myNick, room: currentRoom, talking: false };
+          renderChannels();
+        }
+      }
     }
 
     function renderChannels() {
       const tree = document.getElementById('channelTree');
       tree.innerHTML = "";
 
-      Object.keys(rooms).forEach(rId => {
-        const room = rooms[rId];
+      Object.keys(allRooms).forEach(rId => {
+        const room = allRooms[rId];
         const isCurrent = currentRoom === rId;
+
+        const usersInRoom = Object.keys(activeUsers)
+          .map(k => activeUsers[k])
+          .filter(u => u && u.room === rId);
+
         const card = document.createElement('div');
         card.className = `channel-card ${isCurrent ? 'active' : ''}`;
-        
-        const userKeys = Object.keys(room.users);
-        let usersHtml = userKeys.map(k => {
-          const u = room.users[k];
-          return `
-            <div class="user-tag">
+
+        let usersHtml = usersInRoom.map((u) => `
+          <div class="user-tag">
+            <div style="display:flex; align-items:center; gap:6px;">
               <div class="user-dot ${u.talking ? 'speaking' : ''}"></div>
               <span>${u.nick}</span>
             </div>
-          `;
-        }).join('');
+          </div>
+        `).join('');
+
+        const lockIcon = room.pass ? '🔒 ' : '🔊 ';
 
         card.innerHTML = `
-          <div class="channel-header" onclick="joinChannel('${rId}')">
-            <span>🔊 ${room.name}</span>
-            <span style="font-size:0.75rem; color:#718096;">(${userKeys.length})</span>
+          <div class="channel-header" onclick="requestJoinChannel('${rId}')">
+            <span>${lockIcon} ${room.name}</span>
+            <span style="font-size:0.75rem; color:#718096;">(${usersInRoom.length})</span>
           </div>
           <div class="channel-users">
             ${usersHtml || '<span style="font-size:0.7rem; color:#4a5568;">Vacío</span>'}
@@ -258,16 +591,56 @@
       });
     }
 
+    function createCustomRoom() {
+      const nameInput = document.getElementById('newRoomName');
+      const passInput = document.getElementById('newRoomPass');
+      const name = nameInput.value.trim();
+      const pass = passInput.value.trim();
+
+      if (!name) return alert("Ingresa el nombre del canal.");
+
+      const roomId = "room_" + Date.now();
+      const newRoomData = { name: name, pass: pass };
+
+      allRooms[roomId] = newRoomData;
+
+      if (db) {
+        db.ref('rooms/' + roomId).set(newRoomData).catch(() => {});
+      } else {
+        renderChannels();
+      }
+
+      nameInput.value = "";
+      passInput.value = "";
+      toggleModal('createRoomModal', false);
+      joinChannel(roomId);
+    }
+
+    function requestJoinChannel(roomId) {
+      const room = allRooms[roomId];
+      if (!room) return;
+
+      if (room.pass && roomId !== currentRoom && !isAdmin) {
+        const inputPass = prompt(`El canal "${room.name}" requiere contraseña:`);
+        if (inputPass !== room.pass) {
+          return alert("Contraseña incorrecta.");
+        }
+      }
+      joinChannel(roomId);
+    }
+
     async function joinChannel(roomId) {
-      if (!db) return;
       currentRoom = roomId;
-      document.getElementById('currentRoomLabel').innerText = rooms[roomId].name;
+      const roomName = allRooms[roomId] ? allRooms[roomId].name : "Canal";
+      document.getElementById('currentRoomLabel').innerText = roomName;
 
-      db.ref('presence/' + myId + '/room').set(roomId);
+      updateMyPresence();
 
-      db.ref('chats/' + roomId).limitToLast(30).on('value', (snapshot) => {
-        if (currentChatTab === 'room') renderChatFromSnap(snapshot.val());
-      });
+      if (db) {
+        db.ref('chats/' + roomId).limitToLast(30).on('value', (snapshot) => {
+          if (currentChatTab === 'room') renderChatFromSnap(snapshot.val());
+        });
+      }
 
       try {
         if (!localStream) {
@@ -280,25 +653,27 @@
     }
 
     function leaveChannel() {
-      if (!db) return;
-      db.ref('presence/' + myId + '/room').set('lobby');
-      currentRoom = 'lobby';
-      document.getElementById('currentRoomLabel').innerText = rooms['lobby'].name;
+      joinChannel('lobby');
     }
 
     function sendMsg() {
-      if (!db) return;
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text) return;
 
-      const path = currentChatTab === 'general' ? 'chats/general' : 'chats/' + currentRoom;
-      
-      db.ref(path).push({
-        user: myNick,
-        text: text,
-        time: Date.now()
-      });
+      let senderName = isAdmin ? "🛡️ [Admin]" : myNick;
+
+      if (db) {
+        const path = currentChatTab === 'general' ? 'chats/general' : 'chats/' + currentRoom;
+        db.ref(path).push({ user: senderName, text: text, time: Date.now() });
+      } else {
+        const box = document.getElementById('chatBox');
+        const div = document.createElement('div');
+        div.className = 'msg-item';
+        div.innerHTML = `<span class="msg-user">${senderName}:</span> <span class="msg-text">${text}</span>`;
+        box.appendChild(div);
+        box.scrollTop = box.scrollHeight;
+      }
 
       input.value = "";
     }
@@ -306,7 +681,6 @@
     function renderChatFromSnap(data) {
       const box = document.getElementById('chatBox');
       box.innerHTML = "";
-
       if (data) {
         Object.keys(data).forEach(k => {
           const m = data[k];
@@ -320,15 +694,18 @@
     }
 
     function switchChatTab(tab) {
-      if (!db) return;
       currentChatTab = tab;
       document.getElementById('tabGenBtn').classList.toggle('active', tab === 'general');
       document.getElementById('tabRoomBtn').classList.toggle('active', tab === 'room');
 
-      const path = tab === 'general' ? 'chats/general' : 'chats/' + currentRoom;
-      db.ref(path).limitToLast(30).once('value', (snapshot) => {
-        renderChatFromSnap(snapshot.val());
-      });
+      if (db) {
+        const path = tab === 'general' ? 'chats/general' : 'chats/' + currentRoom;
+        db.ref(path).limitToLast(30).once('value', (snapshot) => {
+          renderChatFromSnap(snapshot.val());
+        });
+      } else {
+        document.getElementById('chatBox').innerHTML = "";
+      }
     }
 
     function setupTouchEvents() {
@@ -339,12 +716,50 @@
       btn.addEventListener('mouseup', stopTalking);
     }
 
+    function startKeyBinding() {
+      isBindingKey = true;
+      const btn = document.getElementById('bindKeyBtn');
+      btn.innerText = "PRESIONA CUALQUIER TECLA...";
+      btn.style.borderColor = "#f0ac00";
+    }
+
+    function setupKeyEvents() {
+      window.addEventListener('keydown', (e) => {
+        if (isBindingKey) {
+          e.preventDefault();
+          pttKeyCode = e.code;
+          pttKeyName = e.key.toUpperCase();
+          if (pttKeyCode === 'Space') pttKeyName = 'SPACE';
+          
+          document.getElementById('bindKeyBtn').innerText = "⚙️ TECLA: " + pttKeyName;
+          document.getElementById('bindKeyBtn').style.borderColor = "var(--border-gold)";
+          isBindingKey = false;
+          return;
+        }
+
+        if (e.code === pttKeyCode && document.activeElement.tagName !== 'INPUT') {
+          e.preventDefault();
+          startTalking();
+        }
+      });
+
+      window.addEventListener('keyup', (e) => {
+        if (!isBindingKey && e.code === pttKeyCode && document.activeElement.tagName !== 'INPUT') {
+          e.preventDefault();
+          stopTalking();
+        }
+      });
+    }
+
     function startTalking() {
       if (localStream) localStream.getAudioTracks()[0].enabled = true;
       document.getElementById('micStatusTag').innerText = "HABLANDO";
       document.getElementById('micStatusTag').style.background = "#38a169";
       document.getElementById('touchPttBtn').classList.add('active');
-      if (db) db.ref('presence/' + myId + '/talking').set(true);
+      
+      if (db && !isAdmin) {
+        db.ref('presence/' + myId + '/talking').set(true);
+      }
     }
 
     function stopTalking() {
@@ -352,7 +767,10 @@
       document.getElementById('micStatusTag').innerText = "SILENCIADO";
       document.getElementById('micStatusTag').style.background = "#4a5568";
       document.getElementById('touchPttBtn').classList.remove('active');
-      if (db) db.ref('presence/' + myId + '/talking').set(false);
+
+      if (db && !isAdmin) {
+        db.ref('presence/' + myId + '/talking').set(false);
+      }
     }
 
     function toggleMic() {
